@@ -6,6 +6,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.mail.MailSender;
 import org.springframework.test.util.ReflectionTestUtils;
 import xyz.waranim.authservice.entity.OtpEntity;
 import xyz.waranim.authservice.repository.OtpRepository;
@@ -21,6 +22,9 @@ class OtpServiceTest {
 
     @Mock
     private OtpRepository otpRepository;
+
+    @Mock
+    private MailSender mailSender;
 
     @Mock
     private Random random;
