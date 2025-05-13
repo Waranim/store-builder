@@ -3,14 +3,15 @@ package xyz.waranim.authservice.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import xyz.waranim.common.user.CustomUserDetails;
 import xyz.waranim.authservice.repository.UserRepository;
 import xyz.waranim.common.user.UserEntity;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -32,11 +33,15 @@ public class CustomUserDetailsService implements UserDetailsService {
             throw new DisabledException("Аккаунт заблокирован");
         }
 
-        List<SimpleGrantedAuthority> authorities = user.getRoles().stream()
-                .map(role -> new SimpleGrantedAuthority("ROLE_" + role))
-                .toList();
+        List<SimpleGrantedAuthority> authorities;
+        if (user.getRole() != null) {
+            authorities = List.of(new SimpleGrantedAuthority("ROLE_" + user.getRole().name()));
+        } else {
+            authorities = List.of();
+        }
 
-        return new User(
+        return new CustomUserDetails(
+                String.valueOf(user.getId()),
                 user.getEmail(),
                 "",
                 authorities

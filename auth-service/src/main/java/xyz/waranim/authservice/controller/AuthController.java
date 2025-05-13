@@ -62,7 +62,7 @@ public class AuthController {
             )
             @Valid @RequestBody LoginRequest request
     ) {
-        userService.login(request.email());
+        userService.login(request.email(), true);
         return ResponseEntity.ok().build();
     }
 

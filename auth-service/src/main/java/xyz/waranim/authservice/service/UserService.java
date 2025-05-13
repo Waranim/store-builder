@@ -6,6 +6,7 @@ import xyz.waranim.authservice.exception.InvalidOtpException;
 import xyz.waranim.authservice.exception.UserNotFoundException;
 import xyz.waranim.authservice.repository.UserRepository;
 import xyz.waranim.common.user.UserEntity;
+import xyz.waranim.common.user.UserRole;
 
 @Service
 @RequiredArgsConstructor
@@ -13,11 +14,15 @@ public class UserService {
     private final UserRepository userRepository;
     private final OtpService otpService;
 
-    public void login(String email) {
+    public void login(String email, boolean isSeller) {
         if (!userRepository.existsByEmail(email)) {
             UserEntity user = new UserEntity();
             user.setEmail(email);
-            user.getRoles().add("USER");
+            if (isSeller) {
+                user.setRole(UserRole.SELLER);
+            } else {
+                user.setRole(UserRole.CUSTOMER);
+            }
             userRepository.save(user);
         }
 

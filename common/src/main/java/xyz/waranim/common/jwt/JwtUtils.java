@@ -10,9 +10,11 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
+import xyz.waranim.common.user.CustomUserDetails;
 
 import javax.crypto.SecretKey;
 import java.util.Date;
+import java.util.List;
 
 @Component
 public class JwtUtils {
@@ -36,11 +38,26 @@ public class JwtUtils {
         this.key = Keys.hmacShaKeyFor(secret.getBytes());
     }
 
+//    public String generateAccessToken(Authentication authentication) {
+//        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+//
+//        return Jwts.builder()
+//                .subject(userDetails.getUsername())
+//                .claim("roles", userDetails.getAuthorities().stream()
+//                        .map(GrantedAuthority::getAuthority)
+//                        .toList())
+//                .issuedAt(new Date())
+//                .expiration(new Date(System.currentTimeMillis() + accessExpirationMs))
+//                .signWith(key)
+//                .compact();
+//    }
+
     public String generateAccessToken(Authentication authentication) {
-        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
 
         return Jwts.builder()
                 .subject(userDetails.getUsername())
+                .claim("user_id", userDetails.getId())
                 .claim("roles", userDetails.getAuthorities().stream()
                         .map(GrantedAuthority::getAuthority)
                         .toList())
@@ -62,6 +79,14 @@ public class JwtUtils {
 
     public String extractEmail(String token) {
         return parseToken(token).getSubject();
+    }
+
+    public String extractUserId(String token) {
+        return parseToken(token).get("user_id", String.class);
+    }
+
+    public List<String> extractRoles(String token) {
+        return parseToken(token).get("roles", List.class);
     }
 
     public Claims parseToken(String token) {

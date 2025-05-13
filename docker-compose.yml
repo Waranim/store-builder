@@ -1,0 +1,112 @@
+services:
+  auth:
+    build:
+      context: .
+      dockerfile: auth-service/Dockerfile
+    ports:
+      - "8081:8081"
+    environment:
+      - REDIS_HOSTNAME=redis
+      - REDIS_PORT=6379
+      - POSTGRES_HOSTNAME=db
+      - POSTGRES_PORT=5432
+      - POSTGRES_DB_NAME=store_builder
+      - SMTP_HOSTNAME=mailhog
+      - SMTP_PORT=1025
+      - SMTP_FROM=waranim.xyz
+      - SMTP_AUTH=false
+      - GATEWAY_URL=http://localhost:8080/auth
+    depends_on:
+      - redis
+      - db
+
+  gateway:
+    build:
+      context: .
+      dockerfile: api-gateway/Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - AUTH_HOSTNAME=auth
+      - AUTH_PORT=8081
+      - SHOP_HOSTNAME=shop
+      - SHOP_PORT=8082
+      - CATALOG_HOSTNAME=catalog
+      - CATALOG_PORT=8083
+      - ORDER_HOSTNAME=order
+      - ORDER_PORT=8084
+    depends_on:
+      - auth
+
+  shop:
+    build:
+      context: .
+      dockerfile: shop-service/Dockerfile
+    ports:
+      - "8082:8082"
+    environment:
+      - POSTGRES_HOSTNAME=db
+      - POSTGRES_PORT=5432
+      - POSTGRES_DB_NAME=store_builder
+      - GATEWAY_URL=http://localhost:8080/shops
+    depends_on:
+      - auth
+      - gateway
+
+  catalog:
+    build:
+      context: .
+      dockerfile: catalog-service/Dockerfile
+    ports:
+      - "8083:8083"
+    environment:
+      - POSTGRES_HOSTNAME=db
+      - POSTGRES_PORT=5432
+      - POSTGRES_DB_NAME=store_builder
+      - GATEWAY_URL=http://localhost:8080/catalogs
+    depends_on:
+      - auth
+      - gateway
+
+  order:
+    build:
+      context: .
+      dockerfile: order-service/Dockerfile
+    ports:
+      - "8084:8084"
+    environment:
+      - POSTGRES_HOSTNAME=db
+      - POSTGRES_PORT=5432
+      - POSTGRES_DB_NAME=store_builder
+      - GATEWAY_URL=http://localhost:8080/orders
+    depends_on:
+      - auth
+      - gateway
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
+  db:
+    image: postgres:14-alpine
+    ports:
+      - "5433:5432"
+    environment:
+      - POSTGRES_DB=store_builder
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    volumes:
+      - db-data:/var/lib/postgresql/data
+
+  mailhog:
+    image: mailhog/mailhog:latest
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+    depends_on:
+      - auth
+
+
+volumes:
+  db-data:

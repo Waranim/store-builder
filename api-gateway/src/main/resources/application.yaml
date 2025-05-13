@@ -1,0 +1,46 @@
+server:
+  port: 8080
+
+spring:
+  cloud:
+    gateway:
+      routes:
+        - id: auth-service
+          uri:
+            http://${AUTH_HOSTNAME:localhost}:${AUTH_PORT:8081}
+          predicates:
+            - Path=/auth/**
+          filters:
+            - StripPrefix=1
+        - id: shop-service
+          uri:
+            http://${SHOP_HOSTNAME:localhost}:${SHOP_PORT:8082}
+          predicates:
+            - Path=/shops/**
+          filters:
+            - StripPrefix=1
+        - id: catalog-service
+          uri:
+            http://${CATALOG_HOSTNAME:localhost}:${CATALOG_PORT:8083}
+          predicates:
+            - Path=/catalogs/**
+          filters:
+            - StripPrefix=1
+        - id: order-service
+          uri:
+            http://${ORDER_HOSTNAME:localhost}:${ORDER_PORT:8084}
+          predicates:
+            - Path=/orders/**
+          filters:
+            - StripPrefix=1
+
+
+
+jwt:
+  secret: ${SECRET_KEY:jfitbksigtA214dfesdfr86f2OPwb271}  # Минимум 256 бит (32 символа)
+  otp:
+    expiration: 300 # 5 минут
+  access:
+    expiration: 900  # 15 минут
+  refresh:
+    expiration: 604800

@@ -12,6 +12,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.test.util.ReflectionTestUtils;
+import xyz.waranim.common.user.CustomUserDetails;
 
 import java.util.Collections;
 import java.util.Date;
@@ -24,7 +25,8 @@ class JwtUtilsTest {
     @InjectMocks
     private JwtUtils jwtUtils;
 
-    private final User user = new User(
+    private final CustomUserDetails user = new CustomUserDetails(
+            "1",
             "test@example.com",
             "password",
             Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER")));

@@ -68,7 +68,7 @@ class AuthControllerTest {
                         .content(objectMapper.writeValueAsString(new LoginRequest(testEmail))))
                 .andExpect(status().isOk());
 
-        verify(userService).login(testEmail);
+        verify(userService).login(testEmail, true);
     }
 
     @Test
