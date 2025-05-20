@@ -10,9 +10,14 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.*;
+import org.springframework.data.jpa.domain.Specification;
 import xyz.waranim.catalogservice.dto.CreateProduct;
 import xyz.waranim.catalogservice.dto.ProductDto;
+import xyz.waranim.catalogservice.entity.BrandEntity;
+import xyz.waranim.catalogservice.entity.CategoryEntity;
 import xyz.waranim.catalogservice.entity.ProductEntity;
+import xyz.waranim.catalogservice.repository.BrandRepository;
+import xyz.waranim.catalogservice.repository.CategoryRepository;
 import xyz.waranim.catalogservice.repository.ProductRepository;
 
 import static org.assertj.core.api.Assertions.*;
@@ -22,122 +27,231 @@ import static org.mockito.Mockito.*;
 class ProductServiceTest {
 
     @Mock
-    private ProductRepository productRepository;
+    ProductRepository  productRepository;
+
+    @Mock
+    BrandRepository brandRepository;
+
+    @Mock
+    CategoryRepository categoryRepository;
 
     @InjectMocks
-    private ProductService productService;
+    ProductService service;
+
+    private BrandEntity brand(UUID id) {
+        BrandEntity b = new BrandEntity();
+        b.setId(id);
+        b.setName("Acme");
+        return b;
+    }
+
+    private CategoryEntity category(UUID id) {
+        CategoryEntity c = new CategoryEntity();
+        c.setId(id);
+        c.setName("Фрукты");
+        return c;
+    }
+
+    private CreateProduct createDto(UUID shopId, UUID brandId, UUID catId) {
+        return new CreateProduct(
+                shopId.toString(),
+                "Hat",
+                "Desc",
+                BigDecimal.valueOf(99),
+                "SKU1",
+                "url",
+                brandId.toString(),
+                catId.toString());
+    }
+
+    private ProductEntity product(UUID id, UUID shopId, BrandEntity b, CategoryEntity c) {
+        ProductEntity p = new ProductEntity();
+        p.setId(id);
+        p.setShopId(shopId);
+        p.setName("Hat");
+        p.setSku("SKU1");
+        p.setBrand(b);
+        p.setCategory(c);
+        p.setPrice(BigDecimal.valueOf(99));
+        p.setIsActive(true);
+        return p;
+    }
 
     @Test
-    void create_ShouldThrow_WhenSkuExists() {
-        CreateProduct dto = new CreateProduct("shopId", "name", "desc", BigDecimal.valueOf(100), "SKU1", "url");
-        when(productRepository.findBySku("SKU1")).thenReturn(Optional.of(new ProductEntity()));
+    void create_throws_ifSkuExists() {
+        CreateProduct dto = createDto(UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID());
+        when(productRepository.findBySku("SKU1"))
+                .thenReturn(Optional.of(new ProductEntity()));
 
-        assertThatThrownBy(() -> productService.create(dto))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("Артикул уже занят: SKU1");
+        assertThatThrownBy(() -> service.create(dto))
+                .isInstanceOf(IllegalArgumentException.class);
         verify(productRepository, never()).save(any());
     }
 
     @Test
-    void create_ShouldSaveAndReturnDto() {
-        UUID shopId = UUID.randomUUID();
-        CreateProduct dto = new CreateProduct(shopId.toString(), "name", "desc", BigDecimal.valueOf(100), "SKU1", "url");
-        when(productRepository.findBySku("SKU1")).thenReturn(Optional.empty());
+    void create_throws_ifBrandMissing() {
+        UUID brandId = UUID.randomUUID();
+        CreateProduct dto = createDto(UUID.randomUUID(), brandId, UUID.randomUUID());
 
-        ProductEntity saved = new ProductEntity();
-        saved.setId(UUID.randomUUID());
-        saved.setShopId(shopId);
-        saved.setName("name");
-        saved.setPrice(BigDecimal.valueOf(100));
-        saved.setSku("SKU1");
+        when(productRepository.findBySku("SKU1")).thenReturn(Optional.empty());
+        when(brandRepository.findById(brandId)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> service.create(dto))
+                .isInstanceOf(EntityNotFoundException.class);
+    }
+
+    @Test
+    void create_returnsSavedDto() {
+        UUID shopId     = UUID.randomUUID();
+        UUID brandId    = UUID.randomUUID();
+        UUID categoryId = UUID.randomUUID();
+
+        CreateProduct dto = createDto(shopId, brandId, categoryId);
+
+        when(productRepository.findBySku("SKU1")).thenReturn(Optional.empty());
+        when(brandRepository.findById(brandId)).thenReturn(Optional.of(brand(brandId)));
+        when(categoryRepository.findById(categoryId)).thenReturn(Optional.of(category(categoryId)));
+
+        ProductEntity saved = product(UUID.randomUUID(), shopId, brand(brandId), category(categoryId));
         when(productRepository.save(any())).thenReturn(saved);
 
-        ProductDto result = productService.create(dto);
+        ProductDto result = service.create(dto);
 
         assertThat(result.id()).isEqualTo(saved.getId());
-        assertThat(result.sku()).isEqualTo("SKU1");
+        assertThat(result.brandId()).isEqualTo(brandId);
+        assertThat(result.categoryId()).isEqualTo(categoryId);
     }
 
     @Test
-    void getById_ShouldReturnDto_WhenFound() {
-        UUID id = UUID.randomUUID();
-        ProductEntity ent = new ProductEntity();
-        ent.setId(id);
+    void getById_returnsDto() {
+        UUID id     = UUID.randomUUID();
+        UUID shopId = UUID.randomUUID();
+        UUID brandId = UUID.randomUUID();
+        UUID catId   = UUID.randomUUID();
+
+        ProductEntity ent = product(id, shopId, brand(brandId), category(catId));
         when(productRepository.findById(id)).thenReturn(Optional.of(ent));
 
-        ProductDto dto = productService.getById(id);
+        ProductDto dto = service.getById(id);
         assertThat(dto.id()).isEqualTo(id);
+        assertThat(dto.brandId()).isEqualTo(brandId);
+        assertThat(dto.categoryId()).isEqualTo(catId);
     }
 
     @Test
-    void getById_ShouldThrow_WhenNotFound() {
+    void getById_throws_whenMissing() {
         UUID id = UUID.randomUUID();
         when(productRepository.findById(id)).thenReturn(Optional.empty());
-        assertThatThrownBy(() -> productService.getById(id))
+
+        assertThatThrownBy(() -> service.getById(id))
                 .isInstanceOf(EntityNotFoundException.class);
     }
 
     @Test
-    void listByShop_ShouldUseCorrectRepoMethod() {
+    void listByShop_callsCorrectRepoMethods() {
         UUID shopId = UUID.randomUUID();
-        Pageable pageReq = PageRequest.of(0, 10);
-        ProductEntity e1 = new ProductEntity(), e2 = new ProductEntity();
-        Page<ProductEntity> page = new PageImpl<>(List.of(e1, e2));
+        Pageable pg = PageRequest.of(0, 10);
 
-        when(productRepository.findByShopId(shopId, pageReq)).thenReturn(page);
-        Page<ProductDto> result1 = productService.listByShop(shopId, null, pageReq);
-        assertThat(result1.getTotalElements()).isEqualTo(2);
+        ProductEntity prod = product(UUID.randomUUID(), shopId,
+                brand(UUID.randomUUID()), category(UUID.randomUUID()));
+        Page<ProductEntity> page = new PageImpl<>(List.of(prod));
 
-        when(productRepository.findByShopIdAndIsActive(shopId, true, pageReq)).thenReturn(page);
-        Page<ProductDto> result2 = productService.listByShop(shopId, true, pageReq);
-        assertThat(result2.getTotalElements()).isEqualTo(2);
+        when(productRepository.findByShopId(shopId, pg)).thenReturn(page);
+        when(productRepository.findByShopIdAndIsActive(eq(shopId), anyBoolean(), eq(pg)))
+                .thenReturn(page);
 
-        when(productRepository.findByShopIdAndIsActive(shopId, false, pageReq)).thenReturn(page);
-        Page<ProductDto> result3 = productService.listByShop(shopId, false, pageReq);
-        assertThat(result3.getTotalElements()).isEqualTo(2);
+        assertThat(service.listByShop(shopId, null, pg)).hasSize(1);
+        assertThat(service.listByShop(shopId, true, pg)).hasSize(1);
+        assertThat(service.listByShop(shopId, false, pg)).hasSize(1);
     }
 
     @Test
-    void update_ShouldModifyAndReturnDto() {
-        UUID id = UUID.randomUUID();
-        ProductEntity existing = new ProductEntity();
-        existing.setId(id);
-        when(productRepository.findById(id)).thenReturn(Optional.of(existing));
+    void search_buildsSpec_andDelegatesToRepo() {
+        UUID shopId     = UUID.randomUUID();
+        UUID brandId    = UUID.randomUUID();
+        UUID categoryId = UUID.randomUUID();
 
-        ProductDto incoming = new ProductDto(
-                id,
-                null,
-                "newName",
-                "newDesc",
-                BigDecimal.valueOf(200),
-                "newSku",
-                "newUrl",
-                true);
-        ProductEntity saved = new ProductEntity();
-        saved.setId(id);
-        saved.setName("newName");
-        saved.setIsActive(true);
+        when(categoryRepository.findSubtreeIds(categoryId))
+                .thenReturn(List.of(categoryId));
+
+        ProductEntity prod = product(UUID.randomUUID(), shopId, brand(brandId), category(categoryId));
+        Page<ProductEntity> page = new PageImpl<>(List.of(prod));
+
+        when(productRepository.findAll(
+                Mockito.<Specification<ProductEntity>>any(),
+                any(Pageable.class))).thenReturn(page);
+
+        Page<ProductDto> result = service.search(
+                shopId, brandId, categoryId, true, PageRequest.of(0, 10));
+
+        assertThat(result).hasSize(1);
+        verify(productRepository).findAll(
+                ArgumentMatchers.<Specification<ProductEntity>>any(),
+                any(Pageable.class));
+    }
+
+    @Test
+    void update_throws_ifBrandMissing() {
+        UUID id       = UUID.randomUUID();
+        UUID brandId  = UUID.randomUUID();
+        UUID catId    = UUID.randomUUID();
+
+        ProductEntity existing = product(id, UUID.randomUUID(), brand(UUID.randomUUID()), category(catId));
+        when(productRepository.findById(id)).thenReturn(Optional.of(existing));
+        when(brandRepository.findById(brandId)).thenReturn(Optional.empty());
+
+        ProductDto incoming = new ProductDto(id, existing.getShopId(), "Hat",
+                brandId, catId,
+                "Desc", BigDecimal.valueOf(99),
+                "SKU1", "url", true);
+
+        assertThatThrownBy(() -> service.update(id, incoming))
+                .isInstanceOf(EntityNotFoundException.class);
+    }
+
+    @Test
+    void update_returnsModifiedDto() {
+        UUID id       = UUID.randomUUID();
+        UUID shopId   = UUID.randomUUID();
+        UUID brandId  = UUID.randomUUID();
+        UUID catId    = UUID.randomUUID();
+
+        ProductEntity existing = product(id, shopId, brand(UUID.randomUUID()), category(catId));
+        when(productRepository.findById(id)).thenReturn(Optional.of(existing));
+        when(brandRepository.findById(brandId)).thenReturn(Optional.of(brand(brandId)));
+
+        ProductEntity saved = product(id, shopId, brand(brandId), category(catId));
+        saved.setName("New");
         when(productRepository.save(existing)).thenReturn(saved);
 
-        ProductDto result = productService.update(id, incoming);
-        assertThat(result.name()).isEqualTo("newName");
-        assertThat(result.isActive()).isTrue();
+        ProductDto incoming = new ProductDto(id, shopId, "New",
+                brandId, catId,
+                "Desc", BigDecimal.valueOf(99),
+                "SKU1", "url", true);
+
+        ProductDto result = service.update(id, incoming);
+
+        assertThat(result.name()).isEqualTo("New");
+        assertThat(result.brandId()).isEqualTo(brandId);
+        assertThat(result.categoryId()).isEqualTo(catId);
     }
 
     @Test
-    void delete_ShouldThrow_WhenNotExists() {
+    void delete_throws_ifMissing() {
         UUID id = UUID.randomUUID();
         when(productRepository.existsById(id)).thenReturn(false);
-        assertThatThrownBy(() -> productService.delete(id))
+
+        assertThatThrownBy(() -> service.delete(id))
                 .isInstanceOf(EntityNotFoundException.class);
     }
 
     @Test
-    void delete_ShouldCallRepo_WhenExists() {
+    void delete_correct() {
         UUID id = UUID.randomUUID();
         when(productRepository.existsById(id)).thenReturn(true);
 
-        productService.delete(id);
+        service.delete(id);
+
         verify(productRepository).deleteById(id);
     }
 }

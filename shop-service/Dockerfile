@@ -7,6 +7,7 @@ COPY api-gateway api-gateway/
 COPY auth-service auth-service/
 COPY order-service order-service/
 COPY catalog-service catalog-service/
+COPY media-service media-service/
 COPY shop-service shop-service/
 
 RUN mvn -B -pl shop-service -am clean package -DskipTests

@@ -4,9 +4,11 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import xyz.waranim.orderservice.dto.CreateOrderItemDto;
 import xyz.waranim.orderservice.dto.OrderItemDto;
@@ -18,6 +20,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/v1/order/items")
 @Tag(name = "Order Items", description = "Управление позициями заказа")
+@SecurityRequirement(name = "bearerAuth")
 @RequiredArgsConstructor
 public class OrderItemController {
 
@@ -27,6 +30,7 @@ public class OrderItemController {
     @ApiResponse(responseCode = "200", description = "Позиция создана",
             content = @Content(schema = @Schema(implementation = OrderItemDto.class)))
     @PostMapping("/create")
+    @Transactional
     public ResponseEntity<OrderItemDto> create(
             @RequestParam @Schema(description = "UUID заказа") UUID orderId,
             @RequestBody CreateOrderItemDto dto
@@ -38,6 +42,7 @@ public class OrderItemController {
     @ApiResponse(responseCode = "200", description = "Данные позиции",
             content = @Content(schema = @Schema(implementation = OrderItemDto.class)))
     @GetMapping("/{id}")
+    @Transactional
     public ResponseEntity<OrderItemDto> get(@PathVariable @Schema(description = "UUID позиции заказа") UUID id) {
         return ResponseEntity.ok(service.getById(id));
     }
@@ -45,6 +50,7 @@ public class OrderItemController {
     @Operation(summary = "Список позиций заказа")
     @ApiResponse(responseCode = "200", description = "Список позиций")
     @GetMapping
+    @Transactional
     public ResponseEntity<List<OrderItemDto>> list(@RequestParam @Schema(description = "UUID заказа") UUID orderId) {
         return ResponseEntity.ok(service.getByOrderId(orderId));
     }
@@ -53,6 +59,7 @@ public class OrderItemController {
     @ApiResponse(responseCode = "200", description = "Позиция обновлена",
             content = @Content(schema = @Schema(implementation = OrderItemDto.class)))
     @PutMapping("/{id}")
+    @Transactional
     public ResponseEntity<OrderItemDto> update(@PathVariable @Schema(description = "UUID позиции заказа") UUID id,
                                                @RequestBody CreateOrderItemDto dto) {
         return ResponseEntity.ok(service.update(id, dto));
@@ -61,6 +68,7 @@ public class OrderItemController {
     @Operation(summary = "Удалить позицию заказа")
     @ApiResponse(responseCode = "204", description = "Позиция удалена")
     @DeleteMapping("/{id}")
+    @Transactional
     public ResponseEntity<Void> delete(@PathVariable @Schema(description = "UUID позиции заказа") UUID id) {
         service.delete(id);
         return ResponseEntity.noContent().build();

@@ -22,6 +22,12 @@ public record CreateProduct(
         String sku,
 
         @Schema(description = "URL изображения продукта", example = "https://example.com/images/ts-001.jpg")
-        String imageUrl
+        String imageUrl,
+
+        @Schema(description = "UUID бренда в формате строки", example = "e7b7a1c0-3f4a-4bfc-8e2d-1234567890ab")
+        String brandId,
+
+        @Schema(description = "UUID категории в формате строки", example = "e7b7a1c0-3f4a-4bfc-8e2d-1234567890ab")
+        String categoryId
 ) {
 }

@@ -41,19 +41,25 @@ class ProductControllerTest {
     @Test
     void testCreate() throws Exception {
         UUID shopId = UUID.randomUUID();
+        UUID brandId = UUID.randomUUID();
+        UUID categoryId = UUID.randomUUID();
         CreateProduct request = new CreateProduct(
                 shopId.toString(),
                 "Test Product",
                 "Test Description",
                 BigDecimal.valueOf(9.99),
                 "TP-001",
-                "https://example.com/image.jpg"
+                "https://example.com/image.jpg",
+                brandId.toString(),
+                categoryId.toString()
         );
 
         ProductDto responseDto = new ProductDto(
                 UUID.randomUUID(),
                 shopId,
                 "Test Product",
+                brandId,
+                categoryId,
                 "Test Description",
                 BigDecimal.valueOf(9.99),
                 "TP-001",
@@ -79,6 +85,8 @@ class ProductControllerTest {
                 id,
                 UUID.randomUUID(),
                 "Test Product",
+                UUID.randomUUID(),
+                UUID.randomUUID(),
                 "Test Description",
                 BigDecimal.valueOf(9.99),
                 "TP-001",
@@ -102,6 +110,8 @@ class ProductControllerTest {
                 UUID.randomUUID(),
                 shopId,
                 "Test Product",
+                UUID.randomUUID(),
+                UUID.randomUUID(),
                 "Test Description",
                 BigDecimal.valueOf(9.99),
                 "TP-001",
@@ -132,10 +142,14 @@ class ProductControllerTest {
     void testUpdate() throws Exception {
         UUID id = UUID.randomUUID();
         UUID shopId = UUID.randomUUID();
+        UUID brandId = UUID.randomUUID();
+        UUID categoryId = UUID.randomUUID();
         ProductDto requestDto = new ProductDto(
                 id,
                 shopId,
                 "Updated Name",
+                brandId,
+                categoryId,
                 "Updated Description",
                 BigDecimal.valueOf(19.99),
                 "UP-001",

@@ -17,6 +17,12 @@ public record ProductDto(
         @Schema(description = "Название продукта", example = "T-Shirt")
         String name,
 
+        @Schema(description = "UUID бренда", example = "e7b7a1c0-3f4a-4bfc-8e2d-1234567890ab")
+        UUID brandId,
+
+        @Schema(description = "UUID категории", example = "e7b7a1c0-3f4a-4bfc-8e2d-1234567890ab")
+        UUID categoryId,
+
         @Schema(description = "Описание продукта", example = "Хлопковая футболка с принтом")
         String description,
 
@@ -38,6 +44,8 @@ public record ProductDto(
                 entity.getId(),
                 entity.getShopId(),
                 entity.getName(),
+                entity.getBrand().getId(),
+                entity.getCategory().getId(),
                 entity.getDescription(),
                 entity.getPrice(),
                 entity.getSku(),

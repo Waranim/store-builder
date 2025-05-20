@@ -34,5 +34,5 @@ public class ShopEntity extends BaseEntity {
     private Map<String, Object> theme;
 
     @Column(name = "is_published", nullable = false)
-    private Boolean isPublished;
+    private Boolean isPublished = false;
 }

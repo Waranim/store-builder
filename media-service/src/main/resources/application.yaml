@@ -1,0 +1,41 @@
+spring:
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        order_updates: true
+        jdbc:
+          lob:
+            non_contextual_creation: true
+          time_zone: UTC
+        default_schema: media
+        hbm2ddl:
+          create_namespaces: true
+
+  datasource:
+    url: jdbc:postgresql://${POSTGRES_HOSTNAME:localhost}:${POSTGRES_PORT:5432}/${POSTGRES_DB_NAME:store_builder}
+    username: ${POSTGRES_USERNAME:postgres}
+    password: ${POSTGRES_PASSWORD:postgres}
+
+springdoc:
+  server-url: ${GATEWAY_URL:http://localhost:8085/media}
+  swagger-ui:
+    path: /swagger-ui.html
+    url: /v3/api-docs
+    operations-sorter: method
+    tags-sorter: alpha
+    default-model-expand-depth: 3
+    persistAuthorization: true
+  api-docs:
+    path: /v3/api-docs
+
+server:
+  port: 8085
+
+minio:
+  url: ${MINIO_URL:http://localhost:9000}
+  access-key: ${MINIO_ACCSESS_KEY:minio}
+  secret-key: ${MINIO_SECRET_KEY:minio123}
+  bucket: ${MINIO_BUCKET:images}

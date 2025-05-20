@@ -29,7 +29,9 @@ public class JwtAuthFilter implements GlobalFilter {
 
         if (originalPath.split("/")[4].equals("swagger-ui")
                 || originalPath.split("/")[4].equals("swagger-ui.html")
-                || originalPath.split("/")[4].equals("v3")) {
+                || originalPath.split("/")[4].equals("v3")
+                || originalPath.split("/")[3].equals("auth")
+        ) {
             return chain.filter(exchange);
         }
 
@@ -43,7 +45,7 @@ public class JwtAuthFilter implements GlobalFilter {
             return sendError(exchange, HttpStatus.FORBIDDEN, "Invalid token");
         }
 
-        String userId = jwtUtils.extractUserId(token);
+        String userId = jwtUtils.extractUserId(token).toString();
         String username = jwtUtils.extractEmail(token);
         List<String> roles = jwtUtils.extractRoles(token);
 
@@ -60,7 +62,7 @@ public class JwtAuthFilter implements GlobalFilter {
     private String extractToken(ServerHttpRequest request) {
         String header = request.getHeaders().getFirst("Authorization");
         return (header != null && header.startsWith("Bearer "))
-                ? header.substring(7)
+                ? header.substring(7).trim()
                 : null;
     }
 

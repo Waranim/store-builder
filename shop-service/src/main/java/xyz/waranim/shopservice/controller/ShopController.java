@@ -6,9 +6,11 @@ import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import xyz.waranim.shopservice.dto.CreateShop;
 import xyz.waranim.shopservice.dto.ShopDto;
@@ -20,6 +22,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/v1/shop")
 @Tag(name = "Shops", description = "Управление магазинами")
+@SecurityRequirement(name = "bearerAuth")
 @RequiredArgsConstructor
 public class ShopController {
 
@@ -38,6 +41,7 @@ public class ShopController {
             )
     )
     @PostMapping("/create")
+    @Transactional
     public ResponseEntity<ShopDto> create(
             @RequestBody CreateShop createShop,
             @Parameter(
@@ -59,6 +63,7 @@ public class ShopController {
             content = @Content(schema = @Schema(implementation = ShopDto.class))
     )
     @GetMapping("/{id}")
+    @Transactional
     public ResponseEntity<ShopDto> get(@PathVariable @Schema(description = "UUID магазина") UUID id) {
         return ResponseEntity.ok(service.getById(id));
     }
@@ -66,6 +71,7 @@ public class ShopController {
     @Operation(summary = "Список всех магазинов")
     @ApiResponse(responseCode = "200", description = "Список магазинов")
     @GetMapping
+    @Transactional
     public ResponseEntity<List<ShopDto>> list() {
         return ResponseEntity.ok(service.getAll());
     }
@@ -77,6 +83,7 @@ public class ShopController {
             content = @Content(schema = @Schema(implementation = ShopDto.class))
     )
     @PutMapping("/{id}")
+    @Transactional
     public ResponseEntity<ShopDto> update(
             @PathVariable @Schema(description = "UUID магазина") UUID id,
             @RequestBody ShopDto shopDto) {
@@ -86,6 +93,7 @@ public class ShopController {
     @Operation(summary = "Удалить магазин")
     @ApiResponse(responseCode = "204", description = "Магазин удалён")
     @DeleteMapping("/{id}")
+    @Transactional
     public ResponseEntity<Void> delete(@PathVariable @Schema(description = "UUID магазина") UUID id) {
         service.delete(id);
         return ResponseEntity.noContent().build();

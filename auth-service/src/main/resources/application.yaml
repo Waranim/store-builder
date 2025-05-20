@@ -38,7 +38,7 @@ spring:
             enable: ${SMTP_STARTTLS:true}
 
 jwt:
-  secret: ${SECRET_KEY:jfitbksigtA214dfesdfr86f2OPwb271}  # Минимум 256 бит (32 символа)
+  secret: ${SECRET_KEY:ZHNheGNpdHlGZGoyNEZEc2o0MzdPSUpOazFqb2Jub3Q=}  # Минимум 256 бит (32 символа)
   otp:
     expiration: 300 # 5 минут
   access:
@@ -54,6 +54,15 @@ springdoc:
   swagger-ui:
     path: /swagger-ui.html
     url: /v3/api-docs
+    urls:
+      - name: shop
+        url: /shops/v3/api-docs
+      - name: catalog
+        url: /catalogs/v3/api-docs
+      - name: orders
+        url: /orders/v3/api-docs
+      - name: media
+        url: /media/v3/api-docs
     operations-sorter: method
     tags-sorter: alpha
     default-model-expand-depth: 3

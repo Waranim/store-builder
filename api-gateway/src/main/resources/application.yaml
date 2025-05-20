@@ -33,11 +33,18 @@ spring:
             - Path=/orders/**
           filters:
             - StripPrefix=1
+        - id: media-service
+          uri:
+            http://${MEDIA_HOSTNAME:localhost}:${MEDIA_PORT:8085}
+          predicates:
+            - Path=/media/**
+          filters:
+            - StripPrefix=1
 
 
 
 jwt:
-  secret: ${SECRET_KEY:jfitbksigtA214dfesdfr86f2OPwb271}  # Минимум 256 бит (32 символа)
+  secret: ${SECRET_KEY:ZHNheGNpdHlGZGoyNEZEc2o0MzdPSUpOazFqb2Jub3Q=}  # Минимум 256 бит (32 символа)
   otp:
     expiration: 300 # 5 минут
   access:

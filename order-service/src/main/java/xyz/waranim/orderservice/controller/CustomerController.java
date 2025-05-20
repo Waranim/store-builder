@@ -4,9 +4,11 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import xyz.waranim.orderservice.dto.CreateCustomerDto;
 import xyz.waranim.orderservice.dto.CustomerDto;
@@ -17,6 +19,7 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/v1/order/customers")
+@SecurityRequirement(name = "bearerAuth")
 @RequiredArgsConstructor
 @Tag(name = "Customers", description = "Управление покупателями")
 public class CustomerController {
@@ -36,6 +39,7 @@ public class CustomerController {
             )
     )
     @PostMapping("/create")
+    @Transactional
     public ResponseEntity<CustomerDto> create(@RequestBody CreateCustomerDto dto) {
         return ResponseEntity.ok(service.create(dto));
     }
@@ -44,6 +48,7 @@ public class CustomerController {
     @ApiResponse(responseCode = "200", description = "Данные покупателя",
             content = @Content(schema = @Schema(implementation = CustomerDto.class)))
     @GetMapping("/{id}")
+    @Transactional
     public ResponseEntity<CustomerDto> get(@PathVariable @Schema(description = "UUID покупателя") UUID id) {
         return ResponseEntity.ok(service.getById(id));
     }
@@ -52,6 +57,7 @@ public class CustomerController {
     @ApiResponse(responseCode = "200", description = "Список покупателей",
             content = @Content(mediaType = "application/json"))
     @GetMapping
+    @Transactional
     public ResponseEntity<List<CustomerDto>> list() {
         return ResponseEntity.ok(service.getAll());
     }
@@ -60,6 +66,7 @@ public class CustomerController {
     @ApiResponse(responseCode = "200", description = "Покупатель обновлён",
             content = @Content(schema = @Schema(implementation = CustomerDto.class)))
     @PutMapping("/{id}")
+    @Transactional
     public ResponseEntity<CustomerDto> update(@PathVariable @Schema(description = "UUID покупателя") UUID id,
                                               @RequestBody CreateCustomerDto dto) {
         return ResponseEntity.ok(service.update(id, dto));
@@ -68,6 +75,7 @@ public class CustomerController {
     @Operation(summary = "Удалить аккаунт покупателя")
     @ApiResponse(responseCode = "204", description = "Покупатель удалён")
     @DeleteMapping("/{id}")
+    @Transactional
     public ResponseEntity<Void> delete(@PathVariable UUID id) {
         service.delete(id);
         return ResponseEntity.noContent().build();

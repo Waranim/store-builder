@@ -4,9 +4,11 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import xyz.waranim.orderservice.dto.CreateOrderDto;
 import xyz.waranim.orderservice.dto.OrderDto;
@@ -19,6 +21,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/v1/order/orders")
 @Tag(name = "Orders", description = "Управление заказами")
+@SecurityRequirement(name = "bearerAuth")
 @RequiredArgsConstructor
 public class OrderController {
 
@@ -37,6 +40,7 @@ public class OrderController {
             )
     )
     @PostMapping("/create")
+    @Transactional
     public ResponseEntity<OrderDto> create(@RequestBody CreateOrderDto dto) {
         return ResponseEntity.ok(service.create(dto));
     }
@@ -45,6 +49,7 @@ public class OrderController {
     @ApiResponse(responseCode = "200", description = "Данные заказа",
             content = @Content(schema = @Schema(implementation = OrderDto.class)))
     @GetMapping("/{id}")
+    @Transactional
     public ResponseEntity<OrderDto> get(@PathVariable @Schema(description = "UUID заказа") UUID id) {
         return ResponseEntity.ok(service.getById(id));
     }
@@ -52,6 +57,7 @@ public class OrderController {
     @Operation(summary = "Список заказов", description = "Можно фильтровать по shopId или customerId")
     @ApiResponse(responseCode = "200", description = "Список заказов")
     @GetMapping
+    @Transactional
     public ResponseEntity<List<OrderDto>> list(
             @RequestParam(required = false) @Schema(description = "Фильтр по магазину") UUID shopId,
             @RequestParam(required = false) @Schema(description = "Фильтр по клиенту") UUID customerId
@@ -71,6 +77,7 @@ public class OrderController {
     @ApiResponse(responseCode = "200", description = "Статус обновлён",
             content = @Content(schema = @Schema(implementation = OrderDto.class)))
     @PatchMapping("/{id}/status")
+    @Transactional
     public ResponseEntity<OrderDto> updateStatus(
             @PathVariable @Schema(description = "UUID заказа") UUID id,
             @RequestParam @Schema(description = "Новый статус заказа", example = "PAID") OrderStatus status
@@ -81,6 +88,7 @@ public class OrderController {
     @Operation(summary = "Удалить заказ")
     @ApiResponse(responseCode = "204", description = "Заказ удалён")
     @DeleteMapping("/{id}")
+    @Transactional
     public ResponseEntity<Void> delete(@PathVariable @Schema(description = "UUID заказа") UUID id) {
         service.delete(id);
         return ResponseEntity.noContent().build();
