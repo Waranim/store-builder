@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import xyz.waranim.common.BaseEntity;
+import xyz.waranim.common.kafka.OrderStatus;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -41,4 +42,14 @@ public class OrderEntity extends BaseEntity {
             fetch = FetchType.LAZY
     )
     private List<OrderItemEntity> items = new ArrayList<>();
+
+    public void addItem(OrderItemEntity item) {
+        items.add(item);
+        item.setOrderEntity(this);
+    }
+
+    public void removeItem(OrderItemEntity item) {
+        items.remove(item);
+        item.setOrderEntity(null);
+    }
 }

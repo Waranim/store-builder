@@ -1,5 +1,6 @@
 package xyz.waranim.authservice.controller;
 
+import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -18,12 +19,11 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
-import xyz.waranim.authservice.dto.AuthenticateResponse;
-import xyz.waranim.authservice.dto.ConfirmRequest;
-import xyz.waranim.authservice.dto.LoginRequest;
-import xyz.waranim.authservice.dto.LoginResponse;
+import xyz.waranim.authservice.dto.*;
 import xyz.waranim.authservice.service.*;
 import xyz.waranim.common.jwt.JwtUtils;
+
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/v1/auth")
@@ -46,10 +46,6 @@ public class AuthController {
                     responseCode = "200",
                     description = "Код успешно отправлен",
                     content = @Content(schema = @Schema(hidden = true))
-            ),
-            @ApiResponse(
-                    responseCode = "400",
-                    description = "Почта уже зарегистрирована"
             )
     })
     @PostMapping("/login")
@@ -171,5 +167,28 @@ public class AuthController {
                     return ResponseEntity.ok(new LoginResponse(newAccessToken));
                 })
                 .orElseGet(() -> ResponseEntity.status(HttpStatus.UNAUTHORIZED).build());
+    }
+
+    @Operation(
+            summary = "Регистрирует покупателя",
+            description = "Отправляет одноразовый код подтверждения на указанный email и создаёт запись в сервисе заказов без поля fullname"
+    )
+    @PostMapping("/register")
+    public ResponseEntity<?> registerCustomer(
+            @Parameter(
+                    description = "Данные для запроса OTP",
+                    required = true,
+                    content = @Content(schema = @Schema(implementation = LoginRequest.class))
+            )
+            @Valid @RequestBody LoginRequest request
+    ) {
+        userService.login(request.email(), false);
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/{id}")
+    @Hidden
+    public ResponseEntity<UserResponse> getUser(@PathVariable UUID id) {
+        return ResponseEntity.ok(userService.getById(id));
     }
 }

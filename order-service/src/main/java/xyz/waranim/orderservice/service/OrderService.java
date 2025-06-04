@@ -2,17 +2,22 @@ package xyz.waranim.orderservice.service;
 
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
+import xyz.waranim.common.kafka.OrderStatus;
+import xyz.waranim.common.kafka.OrderStatusEvent;
 import xyz.waranim.orderservice.dto.CreateOrderDto;
 import xyz.waranim.orderservice.dto.CreateOrderItemDto;
 import xyz.waranim.orderservice.dto.OrderDto;
 import xyz.waranim.orderservice.entity.CustomerEntity;
 import xyz.waranim.orderservice.entity.OrderEntity;
 import xyz.waranim.orderservice.entity.OrderItemEntity;
-import xyz.waranim.orderservice.entity.OrderStatus;
+import xyz.waranim.orderservice.feign.ProductClient;
 import xyz.waranim.orderservice.repository.CustomerRepository;
 import xyz.waranim.orderservice.repository.OrderRepository;
 
+import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
@@ -20,8 +25,10 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class OrderService {
 
+    private final KafkaTemplate<String, OrderStatusEvent> kafka;
     private final OrderRepository orderRepository;
     private final CustomerRepository customerRepository;
+    private final ProductClient productClient;
 
     public OrderDto create(CreateOrderDto dto) {
         CustomerEntity customer = customerRepository.findById(dto.customerId())
@@ -30,9 +37,22 @@ public class OrderService {
         OrderEntity order = new OrderEntity();
         order.setCustomer(customer);
         order.setShopId(dto.shopId());
-        order.setItems(dto.items().stream().map(this::toEntity).toList());
+
+        BigDecimal total = BigDecimal.ZERO;
+
+        for (CreateOrderItemDto itemDto : dto.items()) {
+            OrderItemEntity item = toEntity(itemDto);
+            order.addItem(item);
+            productClient.subtractQuantity(itemDto.productId(), itemDto.qty());
+
+            total = total.add(item.getUnitPrice()
+                    .multiply(BigDecimal.valueOf(item.getQty())));
+        }
+
+        order.setTotal(total);
 
         order = orderRepository.save(order);
+        publish(order, OrderStatus.NEW);
         return OrderDto.of(order);
     }
 
@@ -68,6 +88,7 @@ public class OrderService {
                 .orElseThrow(() -> new EntityNotFoundException("Заказ не найден: " + id));
         order.setStatus(status);
         order = orderRepository.save(order);
+        publish(order, status);
         return OrderDto.of(order);
     }
 
@@ -86,5 +107,13 @@ public class OrderService {
         orderItem.setQty(dto.qty());
 
         return orderItem;
+    }
+
+    private void publish(OrderEntity order, OrderStatus status) {
+        OrderStatusEvent event = new OrderStatusEvent(
+                order.getId().toString(), order.getShopId().toString(), order.getCustomer().getEmail(),
+                status, Instant.now()
+        );
+        kafka.send("order.status.changed", order.getId().toString(), event);
     }
 }

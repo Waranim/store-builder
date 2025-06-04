@@ -8,8 +8,8 @@ import xyz.waranim.catalogservice.dto.CreateCategory;
 import xyz.waranim.catalogservice.entity.CategoryEntity;
 import xyz.waranim.catalogservice.repository.CategoryRepository;
 
-import java.util.UUID;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor

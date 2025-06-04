@@ -1,17 +1,5 @@
 package xyz.waranim.orderservice.controller;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +15,12 @@ import xyz.waranim.orderservice.service.CustomerService;
 import java.util.List;
 import java.util.UUID;
 
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 @WebMvcTest(controllers = CustomerController.class)
 class CustomerControllerTest {
 
@@ -41,6 +35,7 @@ class CustomerControllerTest {
 
     @Test
     void testCreateCustomer() throws Exception {
+        UUID authId = UUID.randomUUID();
         CreateCustomerDto request = new CreateCustomerDto(
                 "ivan.ivanov@example.com",
                 "Иван Иванов"
@@ -48,28 +43,32 @@ class CustomerControllerTest {
 
         CustomerDto responseDto = new CustomerDto(
                 UUID.randomUUID(),
+                authId,
                 "ivan.ivanov@example.com",
                 "Иван Иванов"
         );
 
-        when(service.create(eq(request))).thenReturn(responseDto);
+        when(service.create(eq(request),eq(authId))).thenReturn(responseDto);
 
         mockMvc.perform(post("/api/v1/order/customers/create")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
+                        .content(objectMapper.writeValueAsString(request))
+                        .header("X-User-Id", authId.toString()))
                 .andExpect(status().isOk())
                 .andExpect(MockMvcResultMatchers.content().json(
                         objectMapper.writeValueAsString(responseDto)
                 ));
 
-        verify(service).create(request);
+        verify(service).create(request, authId);
     }
 
     @Test
     void testGetCustomerById() throws Exception {
         UUID id = UUID.randomUUID();
+        UUID authId = UUID.randomUUID();
         CustomerDto dto = new CustomerDto(
                 id,
+                authId,
                 "john.doe@example.com",
                 "John Doe"
         );
@@ -89,10 +88,12 @@ class CustomerControllerTest {
     void testListAllCustomers() throws Exception {
         CustomerDto dto1 = new CustomerDto(
                 UUID.randomUUID(),
+                UUID.randomUUID(),
                 "a@example.com",
                 "User A"
         );
         CustomerDto dto2 = new CustomerDto(
+                UUID.randomUUID(),
                 UUID.randomUUID(),
                 "b@example.com",
                 "User B"
@@ -101,7 +102,8 @@ class CustomerControllerTest {
 
         when(service.getAll()).thenReturn(list);
 
-        mockMvc.perform(get("/api/v1/order/customers"))
+        mockMvc.perform(get("/api/v1/order/customers")
+                        .header("X-User-Roles", "SELLER"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id").value(dto1.id().toString()))
                 .andExpect(jsonPath("$[1].email").value("b@example.com"));
@@ -118,6 +120,7 @@ class CustomerControllerTest {
         );
         CustomerDto responseDto = new CustomerDto(
                 id,
+                UUID.randomUUID(),
                 "updated@example.com",
                 "Updated Name"
         );
@@ -126,7 +129,8 @@ class CustomerControllerTest {
 
         mockMvc.perform(put("/api/v1/order/customers/{id}", id)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
+                        .content(objectMapper.writeValueAsString(request))
+                        .header("X-User-Roles", "SELLER"))
                 .andExpect(status().isOk())
                 .andExpect(MockMvcResultMatchers.content().json(
                         objectMapper.writeValueAsString(responseDto)
@@ -140,7 +144,8 @@ class CustomerControllerTest {
         UUID id = UUID.randomUUID();
         doNothing().when(service).delete(id);
 
-        mockMvc.perform(delete("/api/v1/order/customers/{id}", id))
+        mockMvc.perform(delete("/api/v1/order/customers/{id}", id)
+                        .header("X-User-Roles", "SELLER"))
                 .andExpect(status().isNoContent());
 
         verify(service).delete(id);

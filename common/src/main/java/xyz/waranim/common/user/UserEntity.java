@@ -3,14 +3,11 @@ package xyz.waranim.common.user;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import xyz.waranim.common.BaseEntity;
 
-import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
-
+@EqualsAndHashCode(callSuper = true)
 @Entity
 @Table(name = "users", schema = "auth")
 @Data

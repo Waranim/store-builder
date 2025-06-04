@@ -22,23 +22,11 @@ public class JwtAuthFilter implements GlobalFilter {
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
         ServerHttpRequest request = exchange.getRequest();
-        String originalPath = Objects.requireNonNull(
-                exchange.getAttribute(ServerWebExchangeUtils.GATEWAY_ORIGINAL_REQUEST_URL_ATTR))
-                .toString()
-                .toLowerCase();
-
-        if (originalPath.split("/")[4].equals("swagger-ui")
-                || originalPath.split("/")[4].equals("swagger-ui.html")
-                || originalPath.split("/")[4].equals("v3")
-                || originalPath.split("/")[3].equals("auth")
-        ) {
-            return chain.filter(exchange);
-        }
 
         String token = extractToken(request);
 
         if (token == null) {
-            return sendError(exchange, HttpStatus.UNAUTHORIZED, "Missing token");
+            return chain.filter(exchange);
         }
 
         if (!jwtUtils.validateToken(token)) {
@@ -47,7 +35,10 @@ public class JwtAuthFilter implements GlobalFilter {
 
         String userId = jwtUtils.extractUserId(token).toString();
         String username = jwtUtils.extractEmail(token);
-        List<String> roles = jwtUtils.extractRoles(token);
+        List<String> roles = jwtUtils.extractRoles(token)
+                            .stream()
+                            .map(role -> role.substring(5))
+                            .toList();
 
         ServerHttpRequest modifiedRequest = request.mutate()
                 .header("X-User-Id", userId)

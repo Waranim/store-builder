@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
+import xyz.waranim.common.security.RolesAllowed;
 import xyz.waranim.orderservice.dto.CreateOrderItemDto;
 import xyz.waranim.orderservice.dto.OrderItemDto;
 import xyz.waranim.orderservice.service.OrderItemService;
@@ -31,6 +32,7 @@ public class OrderItemController {
             content = @Content(schema = @Schema(implementation = OrderItemDto.class)))
     @PostMapping("/create")
     @Transactional
+    @RolesAllowed({"CUSTOMER", "SELLER", "ADMIN"})
     public ResponseEntity<OrderItemDto> create(
             @RequestParam @Schema(description = "UUID заказа") UUID orderId,
             @RequestBody CreateOrderItemDto dto
@@ -60,6 +62,7 @@ public class OrderItemController {
             content = @Content(schema = @Schema(implementation = OrderItemDto.class)))
     @PutMapping("/{id}")
     @Transactional
+    @RolesAllowed({"SELLER", "ADMIN"})
     public ResponseEntity<OrderItemDto> update(@PathVariable @Schema(description = "UUID позиции заказа") UUID id,
                                                @RequestBody CreateOrderItemDto dto) {
         return ResponseEntity.ok(service.update(id, dto));
@@ -69,6 +72,7 @@ public class OrderItemController {
     @ApiResponse(responseCode = "204", description = "Позиция удалена")
     @DeleteMapping("/{id}")
     @Transactional
+    @RolesAllowed({"SELLER", "ADMIN"})
     public ResponseEntity<Void> delete(@PathVariable @Schema(description = "UUID позиции заказа") UUID id) {
         service.delete(id);
         return ResponseEntity.noContent().build();

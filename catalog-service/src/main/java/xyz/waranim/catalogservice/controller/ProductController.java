@@ -16,6 +16,7 @@ import xyz.waranim.catalogservice.dto.CreateProduct;
 import xyz.waranim.catalogservice.dto.ProductDto;
 import xyz.waranim.catalogservice.dto.ProductSearchDto;
 import xyz.waranim.catalogservice.service.ProductService;
+import xyz.waranim.common.security.RolesAllowed;
 
 import java.util.UUID;
 
@@ -41,6 +42,7 @@ public class ProductController {
     )
     @PostMapping("/create")
     @Transactional
+    @RolesAllowed({"SELLER", "ADMIN"})
     public ResponseEntity<ProductDto> create(@RequestBody CreateProduct product) {
         ProductDto created = productService.create(product);
         return ResponseEntity.ok(created);
@@ -75,9 +77,9 @@ public class ProductController {
     @Operation(
             summary = "Поиск продуктов",
             description = """
-                    Выполняет поиск товаров по критериям:
+                    Выполняет поиск товаров по критериям, артикулам, тексту в названии/описании:
                     Обязательные: shopId
-                    Опциональные: brandId, categoryId, onlyActive
+                    Опциональные: brandId, categoryId, onlyActive, q
                     Если указана categoryId, то будут включены продукты из этой категории и всех её подкатегорий."""
     )
     @ApiResponse(
@@ -96,6 +98,7 @@ public class ProductController {
                 criteria.brandId(),
                 criteria.categoryId(),
                 criteria.onlyActive(),
+                criteria.q(),
                 pageable);
 
         return ResponseEntity.ok(page);
@@ -109,16 +112,46 @@ public class ProductController {
     )
     @PutMapping("/{id}")
     @Transactional
+    @RolesAllowed({"SELLER", "ADMIN"})
     public ResponseEntity<ProductDto> update(
             @PathVariable @Schema(description = "UUID продукта") UUID id,
             @RequestBody ProductDto product) {
         return ResponseEntity.ok(productService.update(id, product));
     }
 
+    @Operation(summary = "Обновить количество продукта")
+    @ApiResponse(
+            responseCode = "200",
+            description = "Количество обновлено",
+            content = @Content(schema = @Schema(implementation = ProductDto.class))
+    )
+    @PatchMapping("/{id}/{count}")
+    @Transactional
+    public ResponseEntity<ProductDto> updateQuantity(
+            @PathVariable @Schema(description = "UUID продукта") UUID id,
+            @PathVariable @Schema(description = "Новое количество продукта") Integer count) {
+        return ResponseEntity.ok(productService.updateQty(id, count));
+    }
+
+    @Operation(summary = "Уменьшить количество продукта")
+    @ApiResponse(
+            responseCode = "200",
+            description = "Количество обновлено",
+            content = @Content(schema = @Schema(implementation = ProductDto.class))
+    )
+    @PatchMapping("/{id}/decrease/{delta}")
+    @Transactional
+    public ResponseEntity<ProductDto> subtractQuantity(
+            @PathVariable @Schema(description = "UUID продукта") UUID id,
+            @PathVariable @Schema(description = "Значение, на которое нужно уменьшить количество") Integer delta) {
+        return ResponseEntity.ok(productService.subtractQuantity(id, delta));
+    }
+
     @Operation(summary = "Удалить продукт")
     @ApiResponse(responseCode = "204", description = "Продукт удалён")
     @DeleteMapping("/{id}")
     @Transactional
+    @RolesAllowed({"SELLER", "ADMIN"})
     public ResponseEntity<Void> delete(@PathVariable @Schema(description = "UUID продукта") UUID id) {
         productService.delete(id);
         return ResponseEntity.noContent().build();

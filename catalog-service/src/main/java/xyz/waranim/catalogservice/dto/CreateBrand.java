@@ -6,7 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 public record CreateBrand(
         @Schema(description = "Название бренда", example = "Acme", requiredMode = Schema.RequiredMode.REQUIRED)
         String name,
-        @Schema(description = "URL логотипа", example = "/images/42")
+        @Schema(description = "URL логотипа", example = "example.com/images/42")
         String logoUrl
 ) {
 }

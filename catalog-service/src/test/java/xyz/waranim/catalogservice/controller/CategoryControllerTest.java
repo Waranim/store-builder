@@ -3,19 +3,19 @@ package xyz.waranim.catalogservice.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-
 import org.mockito.ArgumentCaptor;
 import org.mockito.junit.jupiter.MockitoExtension;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import xyz.waranim.catalogservice.dto.CategoryDto;
 import xyz.waranim.catalogservice.dto.CreateCategory;
 import xyz.waranim.catalogservice.service.CategoryService;
 
-import java.util.*;
+import java.util.List;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
@@ -42,7 +42,9 @@ class CategoryControllerTest {
         when(service.create(any())).thenReturn(resp);
 
         mockMvc.perform(post("/api/v1/category")
-                        .param("name", name))
+                        .contentType(MediaType.APPLICATION_JSON_VALUE)
+                        .content(objectMapper.writeValueAsString(reqCaptured))
+                        .header("X-User-Roles", "SELLER"))
                 .andExpect(status().isOk())
                 .andExpect(content().json(objectMapper.writeValueAsString(resp)));
 
@@ -72,7 +74,8 @@ class CategoryControllerTest {
         UUID id = UUID.randomUUID();
         doNothing().when(service).delete(id);
 
-        mockMvc.perform(delete("/api/v1/category/{id}", id))
+        mockMvc.perform(delete("/api/v1/category/{id}", id)
+                        .header("X-User-Roles", "SELLER"))
                 .andExpect(status().isNoContent());
 
         verify(service).delete(id);

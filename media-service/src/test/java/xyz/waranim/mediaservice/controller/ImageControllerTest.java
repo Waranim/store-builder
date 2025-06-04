@@ -21,7 +21,6 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -61,7 +60,8 @@ class ImageControllerTest {
         String expectedUrl = "/api/v1/images/" + mediaId;
         MediaDto expectedDto = MediaDto.from(entity, expectedUrl);
 
-        mockMvc.perform(multipart("/api/v1/images").file(file))
+        mockMvc.perform(multipart("/api/v1/images").file(file)
+                        .header("X-User-Roles", "SELLER"))
                 .andExpect(status().isOk())
                 .andExpect(content().json(objectMapper.writeValueAsString(expectedDto)));
 
@@ -99,7 +99,8 @@ class ImageControllerTest {
         when(repo.findById(id)).thenReturn(Optional.of(media));
         doNothing().when(storage).delete("key");
 
-        mockMvc.perform(delete("/api/v1/images/{id}", id))
+        mockMvc.perform(delete("/api/v1/images/{id}", id)
+                        .header("X-User-Roles", "SELLER"))
                 .andExpect(status().isOk());
 
         verify(storage).delete("key");

@@ -1,15 +1,17 @@
 package xyz.waranim.catalogservice.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotNull;
 
 import java.util.UUID;
 
 @Schema(description = "Критерии поиска продуктов")
 public record ProductSearchDto(
 
-        @Schema(description = "UUID магазина",                // обязательный
+        @Schema(description = "UUID магазина",
                 example = "e7b7a1c0-3f4a-4bfc-8e2d-1234567890ab",
                 requiredMode = Schema.RequiredMode.REQUIRED)
+        @NotNull
         UUID shopId,
 
         @Schema(description = "UUID бренда (опционально)",
@@ -23,6 +25,10 @@ public record ProductSearchDto(
 
         @Schema(description = "Флаг «только активные» (опционально)",
                 example = "true")
-        Boolean onlyActive
+        Boolean onlyActive,
+
+        @Schema(description = "Текст из поисковой строки(содержит либо артикул, либо текст названия/описания товара)",
+                example = "IPhone")
+        String q
 ) {
 }

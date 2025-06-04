@@ -45,7 +45,6 @@ class OrderItemServiceTest {
 
     @Test
     void create_ShouldSaveAndReturnDto_WhenOrderExists() {
-        // Arrange
         UUID orderId = UUID.randomUUID();
         OrderEntity order = new OrderEntity();
         order.setId(orderId);
@@ -61,14 +60,11 @@ class OrderItemServiceTest {
         saved.setQty(dto.qty());
         when(itemRepository.save(any(OrderItemEntity.class))).thenReturn(saved);
 
-        // Act
         OrderItemDto result = itemService.create(orderId, dto);
 
-        // Assert
         assertThat(result.id()).isEqualTo(saved.getId());
         assertThat(result.productName()).isEqualTo("Товар");
 
-        // Проверяем, что в save передаём сущность со ссылкой на заказ
         ArgumentCaptor<OrderItemEntity> cap = ArgumentCaptor.forClass(OrderItemEntity.class);
         verify(itemRepository).save(cap.capture());
         assertThat(cap.getValue().getOrderEntity()).isEqualTo(order);

@@ -40,6 +40,13 @@ spring:
             - Path=/media/**
           filters:
             - StripPrefix=1
+        - id: payment-service
+          uri:
+            http://${PAYMENT_HOSTNAME:localhost}:${PAYMENT_PORT:8086}
+          predicates:
+            - Path=/payments/**
+          filters:
+            - StripPrefix=1
 
 
 

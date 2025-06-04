@@ -21,7 +21,6 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -43,7 +42,7 @@ class BrandServiceTest {
 
     @Test
     void create_throws_ifNameExists() {
-        when(repo.findByNameIgnoreCase("Acme"))
+        when(repo.findByNameIgnoreCase("Apple"))
                 .thenReturn(Optional.of(new BrandEntity()));
 
         CreateBrand req = new CreateBrand("Apple", "/logo");

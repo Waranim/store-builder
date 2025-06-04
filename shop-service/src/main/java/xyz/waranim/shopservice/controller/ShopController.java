@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
+import xyz.waranim.common.security.RolesAllowed;
 import xyz.waranim.shopservice.dto.CreateShop;
 import xyz.waranim.shopservice.dto.ShopDto;
 import xyz.waranim.shopservice.service.ShopService;
@@ -42,6 +43,7 @@ public class ShopController {
     )
     @PostMapping("/create")
     @Transactional
+    @RolesAllowed({"SELLER", "ADMIN"})
     public ResponseEntity<ShopDto> create(
             @RequestBody CreateShop createShop,
             @Parameter(
@@ -72,6 +74,7 @@ public class ShopController {
     @ApiResponse(responseCode = "200", description = "Список магазинов")
     @GetMapping
     @Transactional
+    @RolesAllowed({"SELLER", "ADMIN"})
     public ResponseEntity<List<ShopDto>> list() {
         return ResponseEntity.ok(service.getAll());
     }
@@ -84,6 +87,7 @@ public class ShopController {
     )
     @PutMapping("/{id}")
     @Transactional
+    @RolesAllowed({"SELLER", "ADMIN"})
     public ResponseEntity<ShopDto> update(
             @PathVariable @Schema(description = "UUID магазина") UUID id,
             @RequestBody ShopDto shopDto) {
@@ -94,6 +98,7 @@ public class ShopController {
     @ApiResponse(responseCode = "204", description = "Магазин удалён")
     @DeleteMapping("/{id}")
     @Transactional
+    @RolesAllowed({"SELLER", "ADMIN"})
     public ResponseEntity<Void> delete(@PathVariable @Schema(description = "UUID магазина") UUID id) {
         service.delete(id);
         return ResponseEntity.noContent().build();

@@ -42,20 +42,6 @@ public class JwtUtils {
         this.refreshExpirationMs = refreshExpiration * 1000;
     }
 
-//    public String generateAccessToken(Authentication authentication) {
-//        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-//
-//        return Jwts.builder()
-//                .subject(userDetails.getUsername())
-//                .claim("roles", userDetails.getAuthorities().stream()
-//                        .map(GrantedAuthority::getAuthority)
-//                        .toList())
-//                .issuedAt(new Date())
-//                .expiration(new Date(System.currentTimeMillis() + accessExpirationMs))
-//                .signWith(key)
-//                .compact();
-//    }
-
     public String generateAccessToken(Authentication authentication) {
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
 

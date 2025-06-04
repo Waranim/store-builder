@@ -35,7 +35,7 @@ class CustomerServiceTest {
         saved.setFullName(dto.fullName());
         when(customerRepository.save(any(CustomerEntity.class))).thenReturn(saved);
 
-        CustomerDto result = customerService.create(dto);
+        CustomerDto result = customerService.create(dto,UUID.randomUUID());
 
         assertThat(result.id()).isEqualTo(saved.getId());
         assertThat(result.email()).isEqualTo("email@example.com");

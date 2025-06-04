@@ -18,13 +18,11 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 
 @WebMvcTest(controllers = ProductController.class)
 class ProductControllerTest {
@@ -47,6 +45,7 @@ class ProductControllerTest {
                 shopId.toString(),
                 "Test Product",
                 "Test Description",
+                10,
                 BigDecimal.valueOf(9.99),
                 "TP-001",
                 "https://example.com/image.jpg",
@@ -61,6 +60,7 @@ class ProductControllerTest {
                 brandId,
                 categoryId,
                 "Test Description",
+                10,
                 BigDecimal.valueOf(9.99),
                 "TP-001",
                 "https://example.com/image.jpg",
@@ -71,7 +71,8 @@ class ProductControllerTest {
 
         mockMvc.perform(post("/api/v1/product/create")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
+                        .content(objectMapper.writeValueAsString(request))
+                        .header("X-User-Roles", "SELLER"))
                 .andExpect(status().isOk())
                 .andExpect(content().json(objectMapper.writeValueAsString(responseDto)));
 
@@ -88,6 +89,7 @@ class ProductControllerTest {
                 UUID.randomUUID(),
                 UUID.randomUUID(),
                 "Test Description",
+                10,
                 BigDecimal.valueOf(9.99),
                 "TP-001",
                 "https://example.com/image.jpg",
@@ -113,6 +115,7 @@ class ProductControllerTest {
                 UUID.randomUUID(),
                 UUID.randomUUID(),
                 "Test Description",
+                10,
                 BigDecimal.valueOf(9.99),
                 "TP-001",
                 "https://example.com/image.jpg",
@@ -151,6 +154,7 @@ class ProductControllerTest {
                 brandId,
                 categoryId,
                 "Updated Description",
+                10,
                 BigDecimal.valueOf(19.99),
                 "UP-001",
                 "https://example.com/updated.jpg",
@@ -163,7 +167,8 @@ class ProductControllerTest {
 
         mockMvc.perform(put("/api/v1/product/{id}", id)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(requestDto)))
+                        .content(objectMapper.writeValueAsString(requestDto))
+                        .header("X-User-Roles", "SELLER"))
                 .andExpect(status().isOk())
                 .andExpect(content().json(objectMapper.writeValueAsString(responseDto)));
 
@@ -175,7 +180,8 @@ class ProductControllerTest {
         UUID id = UUID.randomUUID();
         doNothing().when(productService).delete(id);
 
-        mockMvc.perform(delete("/api/v1/product/{id}", id))
+        mockMvc.perform(delete("/api/v1/product/{id}", id)
+                        .header("X-User-Roles", "SELLER"))
                 .andExpect(status().isNoContent());
 
         verify(productService).delete(id);

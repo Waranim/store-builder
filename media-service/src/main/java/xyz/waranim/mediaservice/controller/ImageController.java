@@ -17,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+import xyz.waranim.common.security.RolesAllowed;
 import xyz.waranim.mediaservice.dto.MediaDto;
 import xyz.waranim.mediaservice.entity.MediaEntity;
 import xyz.waranim.mediaservice.repository.MediaRepository;
@@ -46,6 +47,7 @@ public class ImageController {
     @ApiResponse(responseCode = "400", description = "Файл не передан или имеет недопустимый формат")
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Transactional
+    @RolesAllowed({"SELLER", "ADMIN"})
     public MediaDto upload(
             @Parameter(
                     description = "Файл изображения (jpeg, png …)",
@@ -101,6 +103,7 @@ public class ImageController {
     @ApiResponse(responseCode = "404", description = "Изображение не найдено")
     @DeleteMapping("/{id}")
     @Transactional
+    @RolesAllowed({"SELLER", "ADMIN"})
     public void delete(@Schema(description = "UUID изображения") @PathVariable UUID id) throws Exception {
         MediaEntity media = repo.findById(id).orElseThrow();
         storage.delete(media.getObjectKey());

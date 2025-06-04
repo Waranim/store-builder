@@ -22,6 +22,8 @@
         <module>shop-service</module>
         <module>api-gateway</module>
         <module>media-service</module>
+        <module>payment-service</module>
+        <module>notification-service</module>
         <module>common</module>
     </modules>
 
@@ -31,6 +33,7 @@
         <spring-boot.version>3.4.4</spring-boot.version>
         <springdoc.version>2.8.6</springdoc.version>
         <spring-cloud.version>2024.0.1</spring-cloud.version>
+        <kafka.version>3.3.2</kafka.version>
     </properties>
 
     <dependencyManagement>
@@ -77,6 +80,12 @@
                 <version>${spring-cloud.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework.kafka</groupId>
+                <artifactId>spring-kafka-bom</artifactId>
+                <version>${kafka.version}</version>
+                <type>pom</type>
             </dependency>
         </dependencies>
     </dependencyManagement>

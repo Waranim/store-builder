@@ -26,4 +26,17 @@ public class ProductSpecs {
         return (ids == null || ids.isEmpty()) ? null
                 : (root, q, cb) -> root.join("category").get("id").in(ids);
     }
+
+    public static Specification<ProductEntity> matchesText(String term) {
+        if (term == null || term.isBlank()) {
+            return null;
+        }
+        return (root, q, cb) -> {
+            String like = "%" + term.toLowerCase() + "%";
+            return cb.or(
+                    cb.like(cb.lower(root.get("name")), like),
+                    cb.like(cb.lower(root.get("description")), like)
+            );
+        };
+    }
 }

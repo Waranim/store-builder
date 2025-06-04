@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import xyz.waranim.catalogservice.dto.CategoryDto;
 import xyz.waranim.catalogservice.dto.CreateCategory;
 import xyz.waranim.catalogservice.service.CategoryService;
+import xyz.waranim.common.security.RolesAllowed;
 
 import java.util.List;
 import java.util.UUID;
@@ -42,6 +43,7 @@ public class CategoryController {
     @ApiResponse(responseCode = "404", description = "Родительская категория не найдена")
     @PostMapping
     @Transactional
+    @RolesAllowed({"SELLER", "ADMIN"})
     public ResponseEntity<CategoryDto> create(@RequestBody CreateCategory category) {
         return ResponseEntity.ok(service.create(category));
     }
@@ -69,6 +71,7 @@ public class CategoryController {
     @ApiResponse(responseCode = "404", description = "Категория не найдена")
     @DeleteMapping("/{id}")
     @Transactional
+    @RolesAllowed({"SELLER", "ADMIN"})
     public ResponseEntity<Void> delete(@PathVariable UUID id) {
         service.delete(id);
         return ResponseEntity.noContent().build();

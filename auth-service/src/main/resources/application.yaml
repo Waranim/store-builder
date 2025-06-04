@@ -69,3 +69,7 @@ springdoc:
     persistAuthorization: true
   api-docs:
     path: /v3/api-docs
+
+services:
+  order:
+    url: ${URL_ORDER_SERVICE:http://localhost:8084}

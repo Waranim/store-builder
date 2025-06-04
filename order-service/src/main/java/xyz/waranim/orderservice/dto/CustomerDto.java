@@ -10,6 +10,9 @@ public record CustomerDto(
         @Schema(description = "UUID клиента", example = "d290f1ee-6c54-4b01-90e6-d701748f0851")
         UUID id,
 
+        @Schema(description = "UUID записи в сервисе аутентификации", example = "d290f1ee-6c54-4b01-90e6-d701748f0851")
+        UUID authId,
+
         @Schema(description = "Email клиента", example = "ivan.ivanov@example.com")
         String email,
 
@@ -19,6 +22,7 @@ public record CustomerDto(
     public static CustomerDto of(CustomerEntity entity) {
         return new CustomerDto(
                 entity.getId(),
+                entity.getAuthId(),
                 entity.getEmail(),
                 entity.getFullName()
         );

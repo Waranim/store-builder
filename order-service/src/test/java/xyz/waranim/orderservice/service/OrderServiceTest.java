@@ -5,12 +5,14 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.kafka.core.KafkaTemplate;
+import xyz.waranim.common.kafka.OrderStatus;
+import xyz.waranim.common.kafka.OrderStatusEvent;
 import xyz.waranim.orderservice.dto.CreateOrderDto;
 import xyz.waranim.orderservice.dto.CustomerDto;
 import xyz.waranim.orderservice.dto.OrderDto;
 import xyz.waranim.orderservice.entity.CustomerEntity;
 import xyz.waranim.orderservice.entity.OrderEntity;
-import xyz.waranim.orderservice.entity.OrderStatus;
 import xyz.waranim.orderservice.repository.CustomerRepository;
 import xyz.waranim.orderservice.repository.OrderRepository;
 
@@ -31,12 +33,14 @@ class OrderServiceTest {
     @Mock
     private CustomerRepository customerRepository;
 
+    @Mock
+    private KafkaTemplate<String, OrderStatusEvent> kafka;
+
     @InjectMocks
     private OrderService orderService;
 
     @Test
     void create_ShouldThrow_WhenCustomerNotFound() {
-        // Любой UUID → пусто
         when(customerRepository.findById(any(UUID.class)))
                 .thenReturn(Optional.empty());
 
@@ -51,13 +55,11 @@ class OrderServiceTest {
         UUID custId = UUID.randomUUID();
         UUID shopId = UUID.randomUUID();
 
-        // Стабим репозиторий покупателей
         CustomerEntity cust = new CustomerEntity();
         cust.setId(custId);
         when(customerRepository.findById(any(UUID.class)))
                 .thenReturn(Optional.of(cust));
 
-        // save(any) возвращает готовый OrderEntity с заполненным customer и shopId
         OrderEntity saved = new OrderEntity();
         saved.setId(UUID.randomUUID());
         saved.setCustomer(cust);
@@ -72,7 +74,6 @@ class OrderServiceTest {
         assertThat(result.customer().id()).isEqualTo(custId);
         assertThat(result.shopId()).isEqualTo(shopId);
 
-        // Удостоверимся, что в save() передали сущность с правильными полями
         ArgumentCaptor<OrderEntity> cap = ArgumentCaptor.forClass(OrderEntity.class);
         verify(orderRepository).save(cap.capture());
         assertThat(cap.getValue().getCustomer()).isEqualTo(cust);
@@ -85,7 +86,6 @@ class OrderServiceTest {
         UUID custId = UUID.randomUUID();
         UUID shopId = UUID.randomUUID();
 
-        // Готовим entity со всеми нужными полями
         CustomerEntity cust = new CustomerEntity();
         cust.setId(custId);
 

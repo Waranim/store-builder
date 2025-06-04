@@ -1,8 +1,8 @@
 package xyz.waranim.orderservice.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import xyz.waranim.common.kafka.OrderStatus;
 import xyz.waranim.orderservice.entity.OrderEntity;
-import xyz.waranim.orderservice.entity.OrderStatus;
 
 import java.math.BigDecimal;
 import java.util.List;

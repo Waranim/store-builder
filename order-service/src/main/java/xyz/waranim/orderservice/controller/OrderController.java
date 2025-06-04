@@ -10,9 +10,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
+import xyz.waranim.common.kafka.OrderStatus;
+import xyz.waranim.common.security.RolesAllowed;
 import xyz.waranim.orderservice.dto.CreateOrderDto;
 import xyz.waranim.orderservice.dto.OrderDto;
-import xyz.waranim.orderservice.entity.OrderStatus;
 import xyz.waranim.orderservice.service.OrderService;
 
 import java.util.List;
@@ -41,6 +42,7 @@ public class OrderController {
     )
     @PostMapping("/create")
     @Transactional
+    @RolesAllowed({"CUSTOMER", "SELLER", "ADMIN"})
     public ResponseEntity<OrderDto> create(@RequestBody CreateOrderDto dto) {
         return ResponseEntity.ok(service.create(dto));
     }
@@ -58,6 +60,7 @@ public class OrderController {
     @ApiResponse(responseCode = "200", description = "Список заказов")
     @GetMapping
     @Transactional
+    @RolesAllowed({"SELLER", "ADMIN"})
     public ResponseEntity<List<OrderDto>> list(
             @RequestParam(required = false) @Schema(description = "Фильтр по магазину") UUID shopId,
             @RequestParam(required = false) @Schema(description = "Фильтр по клиенту") UUID customerId
@@ -78,6 +81,7 @@ public class OrderController {
             content = @Content(schema = @Schema(implementation = OrderDto.class)))
     @PatchMapping("/{id}/status")
     @Transactional
+    @RolesAllowed({"SELLER", "ADMIN"})
     public ResponseEntity<OrderDto> updateStatus(
             @PathVariable @Schema(description = "UUID заказа") UUID id,
             @RequestParam @Schema(description = "Новый статус заказа", example = "PAID") OrderStatus status
@@ -89,6 +93,7 @@ public class OrderController {
     @ApiResponse(responseCode = "204", description = "Заказ удалён")
     @DeleteMapping("/{id}")
     @Transactional
+    @RolesAllowed({"SELLER", "ADMIN"})
     public ResponseEntity<Void> delete(@PathVariable @Schema(description = "UUID заказа") UUID id) {
         service.delete(id);
         return ResponseEntity.noContent().build();

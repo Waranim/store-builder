@@ -8,6 +8,8 @@ COPY auth-service auth-service/
 COPY order-service order-service/
 COPY shop-service shop-service/
 COPY media-service media-service/
+COPY payment-service payment-service/
+COPY notification-service notification-service/
 COPY catalog-service catalog-service/
 
 RUN mvn -B -pl catalog-service -am clean package -DskipTests

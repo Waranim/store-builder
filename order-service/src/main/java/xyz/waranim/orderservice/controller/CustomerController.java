@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
+import xyz.waranim.common.security.RolesAllowed;
 import xyz.waranim.orderservice.dto.CreateCustomerDto;
 import xyz.waranim.orderservice.dto.CustomerDto;
 import xyz.waranim.orderservice.service.CustomerService;
@@ -40,8 +41,9 @@ public class CustomerController {
     )
     @PostMapping("/create")
     @Transactional
-    public ResponseEntity<CustomerDto> create(@RequestBody CreateCustomerDto dto) {
-        return ResponseEntity.ok(service.create(dto));
+    public ResponseEntity<CustomerDto> create(@RequestHeader("X-User-Id") UUID userId,
+            @RequestBody CreateCustomerDto dto) {
+        return ResponseEntity.ok(service.create(dto, userId));
     }
 
     @Operation(summary = "Получить покупателя по ID")
@@ -53,11 +55,22 @@ public class CustomerController {
         return ResponseEntity.ok(service.getById(id));
     }
 
+    @Operation(summary = "Получить покупателя по токену")
+    @ApiResponse(responseCode = "200", description = "Данные покупателя",
+            content = @Content(schema = @Schema(implementation = CustomerDto.class)))
+    @GetMapping("/authId")
+    @Transactional
+    @RolesAllowed({"CUSTOMER", "SELLER", "ADMIN"})
+    public ResponseEntity<CustomerDto> getAnAuthId(@RequestHeader("X-User-Id") UUID userId) {
+        return ResponseEntity.ok(service.getByAuthId(userId));
+    }
+
     @Operation(summary = "Список всех покупателей")
     @ApiResponse(responseCode = "200", description = "Список покупателей",
             content = @Content(mediaType = "application/json"))
     @GetMapping
     @Transactional
+    @RolesAllowed({"SELLER", "ADMIN"})
     public ResponseEntity<List<CustomerDto>> list() {
         return ResponseEntity.ok(service.getAll());
     }
@@ -67,6 +80,7 @@ public class CustomerController {
             content = @Content(schema = @Schema(implementation = CustomerDto.class)))
     @PutMapping("/{id}")
     @Transactional
+    @RolesAllowed({"CUSTOMER", "SELLER", "ADMIN"})
     public ResponseEntity<CustomerDto> update(@PathVariable @Schema(description = "UUID покупателя") UUID id,
                                               @RequestBody CreateCustomerDto dto) {
         return ResponseEntity.ok(service.update(id, dto));
@@ -76,6 +90,7 @@ public class CustomerController {
     @ApiResponse(responseCode = "204", description = "Покупатель удалён")
     @DeleteMapping("/{id}")
     @Transactional
+    @RolesAllowed({"SELLER", "ADMIN"})
     public ResponseEntity<Void> delete(@PathVariable UUID id) {
         service.delete(id);
         return ResponseEntity.noContent().build();

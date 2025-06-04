@@ -1,4 +1,4 @@
-package xyz.waranim.orderservice.entity;
+package xyz.waranim.common.kafka;
 
 public enum OrderStatus {
     NEW,

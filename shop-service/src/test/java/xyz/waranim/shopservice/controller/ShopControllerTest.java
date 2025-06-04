@@ -1,17 +1,5 @@
 package xyz.waranim.shopservice.controller;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +15,12 @@ import xyz.waranim.shopservice.service.ShopService;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(controllers = ShopController.class)
 class ShopControllerTest {
@@ -64,7 +58,8 @@ class ShopControllerTest {
         mockMvc.perform(post("/api/v1/shop/create")
                         .header("X-User-Id", userId)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
+                        .content(objectMapper.writeValueAsString(request))
+                        .header("X-User-Roles", "SELLER"))
                 .andExpect(status().isOk())
                 .andExpect(MockMvcResultMatchers.content().json(
                         objectMapper.writeValueAsString(responseDto)
@@ -121,7 +116,8 @@ class ShopControllerTest {
 
         when(service.getAll()).thenReturn(list);
 
-        mockMvc.perform(get("/api/v1/shop"))
+        mockMvc.perform(get("/api/v1/shop")
+                        .header("X-User-Roles", "SELLER"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id").value(dto1.id().toString()))
                 .andExpect(jsonPath("$[1].slug").value("slug2"));
@@ -146,7 +142,8 @@ class ShopControllerTest {
 
         mockMvc.perform(put("/api/v1/shop/{id}", id)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(requestDto)))
+                        .content(objectMapper.writeValueAsString(requestDto))
+                        .header("X-User-Roles", "SELLER"))
                 .andExpect(status().isOk())
                 .andExpect(MockMvcResultMatchers.content().json(
                         objectMapper.writeValueAsString(requestDto)
@@ -160,7 +157,8 @@ class ShopControllerTest {
         UUID id = UUID.randomUUID();
         doNothing().when(service).delete(id);
 
-        mockMvc.perform(delete("/api/v1/shop/{id}", id))
+        mockMvc.perform(delete("/api/v1/shop/{id}", id)
+                        .header("X-User-Roles", "SELLER"))
                 .andExpect(status().isNoContent());
 
         verify(service).delete(id);

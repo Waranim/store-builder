@@ -3,12 +3,12 @@ package xyz.waranim.catalogservice.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-
 import org.mockito.junit.jupiter.MockitoExtension;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.data.domain.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -16,13 +16,13 @@ import xyz.waranim.catalogservice.dto.BrandDto;
 import xyz.waranim.catalogservice.dto.CreateBrand;
 import xyz.waranim.catalogservice.service.BrandService;
 
-import java.util.*;
+import java.util.List;
+import java.util.UUID;
 
-import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-import static org.junit.jupiter.api.Assertions.*;
 
 @WebMvcTest(controllers = BrandController.class)
 @ExtendWith(MockitoExtension.class)
@@ -43,8 +43,9 @@ class BrandControllerTest {
 
         mockMvc.perform(post("/api/v1/brand")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(req)))
-                .andExpect(status().isOk())                      // контроллер возвращает 200 (ok)
+                        .content(objectMapper.writeValueAsString(req))
+                        .header("X-User-Roles", "SELLER"))
+                .andExpect(status().isOk())
                 .andExpect(content().json(objectMapper.writeValueAsString(resp)));
 
         verify(service).create(req);
@@ -90,7 +91,8 @@ class BrandControllerTest {
 
         mockMvc.perform(put("/api/v1/brand/{id}", id)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(incoming)))
+                        .content(objectMapper.writeValueAsString(incoming))
+                        .header("X-User-Roles", "SELLER"))
                 .andExpect(status().isOk())
                 .andExpect(content().json(objectMapper.writeValueAsString(updated)));
 
@@ -102,7 +104,8 @@ class BrandControllerTest {
         UUID id = UUID.randomUUID();
         doNothing().when(service).delete(id);
 
-        mockMvc.perform(delete("/api/v1/brand/{id}", id))
+        mockMvc.perform(delete("/api/v1/brand/{id}", id)
+                        .header("X-User-Roles", "SELLER"))
                 .andExpect(status().isNoContent());
 
         verify(service).delete(id);

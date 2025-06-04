@@ -9,6 +9,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import xyz.waranim.common.BaseEntity;
 
+import java.util.UUID;
+
 @Entity
 @Table(name = "customers")
 @Getter
@@ -16,6 +18,9 @@ import xyz.waranim.common.BaseEntity;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CustomerEntity extends BaseEntity {
+    @Column(unique = true, nullable = false)
+    private UUID authId;
+
     private String email;
 
     @Column(name = "full_name")

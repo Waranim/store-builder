@@ -16,8 +16,9 @@ import java.util.UUID;
 public class CustomerService {
     private final CustomerRepository customerRepository;
 
-    public CustomerDto create(CreateCustomerDto dto) {
+    public CustomerDto create(CreateCustomerDto dto, UUID authId) {
         CustomerEntity entity = new CustomerEntity();
+        entity.setAuthId(authId);
         entity.setEmail(dto.email());
         entity.setFullName(dto.fullName());
 
@@ -29,6 +30,12 @@ public class CustomerService {
         return customerRepository.findById(id)
                 .map(CustomerDto::of)
                 .orElseThrow(() -> new EntityNotFoundException("Покупатель не найден: " + id));
+    }
+
+    public CustomerDto getByAuthId(UUID authId) {
+        return customerRepository.findByAuthId(authId)
+                .map(CustomerDto::of)
+                .orElseThrow(() -> new EntityNotFoundException("Покупатель не найден: " + authId));
     }
 
     public List<CustomerDto> getAll() {

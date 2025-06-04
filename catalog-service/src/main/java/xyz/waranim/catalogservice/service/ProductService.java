@@ -1,8 +1,10 @@
 package xyz.waranim.catalogservice.service;
 
+import jakarta.annotation.Nullable;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
@@ -41,6 +43,7 @@ public class ProductService {
         productEntity.setBrand(brand);
         productEntity.setCategory(category);
         productEntity.setDescription(product.description());
+        productEntity.setQty(product.quantity());
         productEntity.setPrice(product.price());
         productEntity.setSku(product.sku());
         productEntity.setImageUrl(product.imageUrl());
@@ -68,11 +71,21 @@ public class ProductService {
         return page.map(ProductDto::of);
     }
 
-    public Page<ProductDto> search(UUID shopId,
-                                   UUID brandId,
-                                   UUID categoryId,
-                                   Boolean onlyActive,
-                                   Pageable pageable) {
+    public Page<ProductDto> search(
+            UUID shopId,
+            @Nullable UUID brandId,
+            @Nullable UUID categoryId,
+            @Nullable Boolean onlyActive,
+            @Nullable String term,
+            Pageable pageable
+    ) {
+        if (term != null && productRepository.findBySku(term).isPresent()) {
+            return new PageImpl<>(
+                    List.of(ProductDto.of(productRepository.findBySku(term).get())),
+                    pageable,
+                    1
+            );
+        }
 
         List<UUID> subtree = categoryId == null ? null
                 : categoryRepository.findSubtreeIds(categoryId);
@@ -81,7 +94,8 @@ public class ProductService {
                 .where(ProductSpecs.byShop(shopId))
                 .and(ProductSpecs.active(onlyActive))
                 .and(ProductSpecs.byBrand(brandId))
-                .and(ProductSpecs.inCategories(subtree));
+                .and(ProductSpecs.inCategories(subtree))
+                .and(ProductSpecs.matchesText(term));
 
         return productRepository.findAll(spec, pageable)
                 .map(ProductDto::of);
@@ -104,6 +118,19 @@ public class ProductService {
         return ProductDto.of(productRepository.save(existing));
     }
 
+    public ProductDto updateQty(UUID id, Integer qty) {
+        ProductEntity existing = get(id);
+
+        existing.setQty(qty);
+        return ProductDto.of(productRepository.save(existing));
+    }
+
+    public ProductDto subtractQuantity(UUID id, Integer qty) {
+        ProductEntity existing = get(id);
+
+        existing.setQty(existing.getQty() - qty);
+        return ProductDto.of(productRepository.save(existing));
+    }
 
     public void delete(UUID id) {
         if (!productRepository.existsById(id)) {

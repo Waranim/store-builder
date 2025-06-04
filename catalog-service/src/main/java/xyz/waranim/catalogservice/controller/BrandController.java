@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import xyz.waranim.catalogservice.dto.BrandDto;
 import xyz.waranim.catalogservice.dto.CreateBrand;
 import xyz.waranim.catalogservice.service.BrandService;
+import xyz.waranim.common.security.RolesAllowed;
 
 import java.util.UUID;
 
@@ -41,6 +42,7 @@ public class BrandController {
     @ApiResponse(responseCode = "409", description = "Такое имя бренда уже существует")
     @PostMapping
     @Transactional
+    @RolesAllowed({"SELLER", "ADMIN"})
     public ResponseEntity<BrandDto> create(
             @Schema(description = "Данные для нового бренда")
             @RequestBody CreateBrand req) {
@@ -93,6 +95,7 @@ public class BrandController {
     @ApiResponse(responseCode = "409", description = "Новое имя конфликтует с существующим брендом")
     @PutMapping("/{id}")
     @Transactional
+    @RolesAllowed({"SELLER", "ADMIN"})
     public ResponseEntity<BrandDto> update(@Schema(description = "UUID бренда") @PathVariable UUID id,
                                            @Schema(description = "Новые данные бренда") @RequestBody BrandDto dto) {
         return ResponseEntity.ok(service.update(id, dto));
@@ -106,6 +109,7 @@ public class BrandController {
     @ApiResponse(responseCode = "404", description = "Бренд не найден")
     @DeleteMapping("/{id}")
     @Transactional
+    @RolesAllowed({"SELLER", "ADMIN"})
     public ResponseEntity<Void> delete(@Schema(description = "UUID бренда") @PathVariable UUID id) {
         service.delete(id);
         return ResponseEntity.noContent().build();

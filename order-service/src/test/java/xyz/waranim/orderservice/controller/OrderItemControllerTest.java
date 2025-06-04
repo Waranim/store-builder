@@ -60,7 +60,8 @@ class OrderItemControllerTest {
         mockMvc.perform(post("/api/v1/order/items/create")
                         .param("orderId", orderId.toString())
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(requestDto)))
+                        .content(objectMapper.writeValueAsString(requestDto))
+                        .header("X-User-Roles", "CUSTOMER"))
                 .andExpect(status().isOk())
                 .andExpect(MockMvcResultMatchers.content().json(
                         objectMapper.writeValueAsString(responseDto)
@@ -113,7 +114,8 @@ class OrderItemControllerTest {
         when(service.getByOrderId(orderId)).thenReturn(list);
 
         mockMvc.perform(get("/api/v1/order/items")
-                        .param("orderId", orderId.toString()))
+                        .param("orderId", orderId.toString())
+                        .header("X-User-Roles", "CUSTOMER"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id").value(dto1.id().toString()))
                 .andExpect(jsonPath("$[1].qty").value(dto2.qty()));
@@ -142,7 +144,8 @@ class OrderItemControllerTest {
 
         mockMvc.perform(put("/api/v1/order/items/{id}", id)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(requestDto)))
+                        .content(objectMapper.writeValueAsString(requestDto))
+                        .header("X-User-Roles", "SELLER"))
                 .andExpect(status().isOk())
                 .andExpect(MockMvcResultMatchers.content().json(
                         objectMapper.writeValueAsString(responseDto)
@@ -156,7 +159,8 @@ class OrderItemControllerTest {
         UUID id = UUID.randomUUID();
         doNothing().when(service).delete(id);
 
-        mockMvc.perform(delete("/api/v1/order/items/{id}", id))
+        mockMvc.perform(delete("/api/v1/order/items/{id}", id)
+                        .header("X-User-Roles", "SELLER"))
                 .andExpect(status().isNoContent());
 
         verify(service).delete(id);

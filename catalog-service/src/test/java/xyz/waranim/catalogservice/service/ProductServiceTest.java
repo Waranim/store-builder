@@ -1,15 +1,17 @@
 package xyz.waranim.catalogservice.service;
 
-import java.math.BigDecimal;
-import java.util.*;
-
 import jakarta.persistence.EntityNotFoundException;
-
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.*;
+import org.mockito.ArgumentMatchers;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import xyz.waranim.catalogservice.dto.CreateProduct;
 import xyz.waranim.catalogservice.dto.ProductDto;
@@ -20,7 +22,13 @@ import xyz.waranim.catalogservice.repository.BrandRepository;
 import xyz.waranim.catalogservice.repository.CategoryRepository;
 import xyz.waranim.catalogservice.repository.ProductRepository;
 
-import static org.assertj.core.api.Assertions.*;
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -57,6 +65,7 @@ class ProductServiceTest {
                 shopId.toString(),
                 "Hat",
                 "Desc",
+                10,
                 BigDecimal.valueOf(99),
                 "SKU1",
                 "url",
@@ -182,7 +191,7 @@ class ProductServiceTest {
                 any(Pageable.class))).thenReturn(page);
 
         Page<ProductDto> result = service.search(
-                shopId, brandId, categoryId, true, PageRequest.of(0, 10));
+                shopId, brandId, categoryId, true, "", PageRequest.of(0, 10));
 
         assertThat(result).hasSize(1);
         verify(productRepository).findAll(
@@ -202,7 +211,7 @@ class ProductServiceTest {
 
         ProductDto incoming = new ProductDto(id, existing.getShopId(), "Hat",
                 brandId, catId,
-                "Desc", BigDecimal.valueOf(99),
+                "Desc", 10, BigDecimal.valueOf(99),
                 "SKU1", "url", true);
 
         assertThatThrownBy(() -> service.update(id, incoming))
@@ -226,7 +235,7 @@ class ProductServiceTest {
 
         ProductDto incoming = new ProductDto(id, shopId, "New",
                 brandId, catId,
-                "Desc", BigDecimal.valueOf(99),
+                "Desc", 10, BigDecimal.valueOf(99),
                 "SKU1", "url", true);
 
         ProductDto result = service.update(id, incoming);

@@ -27,6 +27,9 @@ public class ProductEntity extends BaseEntity {
     private String description;
 
     @Column(nullable = false)
+    private int qty;
+
+    @Column(nullable = false)
     private BigDecimal price;
 
     private String sku;

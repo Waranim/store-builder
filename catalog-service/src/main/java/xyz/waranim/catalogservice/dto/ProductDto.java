@@ -26,6 +26,9 @@ public record ProductDto(
         @Schema(description = "Описание продукта", example = "Хлопковая футболка с принтом")
         String description,
 
+        @Schema(description = "Количество продукта", example = "10")
+        Integer quantity,
+
         @Schema(description = "Цена продукта", example = "19.99")
         BigDecimal price,
 
@@ -47,6 +50,7 @@ public record ProductDto(
                 entity.getBrand().getId(),
                 entity.getCategory().getId(),
                 entity.getDescription(),
+                entity.getQty(),
                 entity.getPrice(),
                 entity.getSku(),
                 entity.getImageUrl(),
