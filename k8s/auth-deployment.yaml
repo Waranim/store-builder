@@ -1,0 +1,76 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth
+  namespace: store-builder
+spec:
+  replicas: 2
+  selector:
+    matchLabels: { app: auth }
+  template:
+    metadata:
+      labels: { app: auth }
+    spec:
+      containers:
+        - name: auth
+          image: auth-service:1.2
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8081
+          env:
+            - name: REDIS_HOSTNAME
+              value: "redis"                           # имя Service для Redis
+            - name: REDIS_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: store-builder-config
+                  key: REDIS_PORT
+            - name: POSTGRES_HOSTNAME
+              value: "db"                              # имя Service для Postgres
+            - name: POSTGRES_PORT
+              value: "5432"
+            - name: POSTGRES_DB_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: store-builder-config
+                  key: POSTGRES_DB
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: store-builder-secrets
+                  key: POSTGRES_USER
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: store-builder-secrets
+                  key: POSTGRES_PASSWORD
+            - name: SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: store-builder-secrets
+                  key: SECRET_KEY
+            - name: SMTP_HOSTNAME
+              valueFrom:
+                configMapKeyRef:
+                  name: store-builder-config
+                  key: SMTP_HOSTNAME
+            - name: SMTP_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: store-builder-config
+                  key: SMTP_PORT
+            - name: SMTP_FROM
+              valueFrom:
+                configMapKeyRef:
+                  name: store-builder-config
+                  key: SMTP_FROM
+            - name: SMTP_AUTH
+              valueFrom:
+                configMapKeyRef:
+                  name: store-builder-config
+                  key: SMTP_AUTH
+            - name: GATEWAY_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: store-builder-config
+                  key: GATEWAY_URL

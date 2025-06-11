@@ -17,6 +17,13 @@
 
     <modules>
         <module>auth-service</module>
+        <module>catalog-service</module>
+        <module>order-service</module>
+        <module>shop-service</module>
+        <module>api-gateway</module>
+        <module>media-service</module>
+        <module>payment-service</module>
+        <module>notification-service</module>
         <module>common</module>
     </modules>
 
@@ -25,6 +32,8 @@
         <jjwt.version>0.12.5</jjwt.version>
         <spring-boot.version>3.4.4</spring-boot.version>
         <springdoc.version>2.8.6</springdoc.version>
+        <spring-cloud.version>2024.0.1</spring-cloud.version>
+        <kafka.version>3.3.2</kafka.version>
     </properties>
 
     <dependencyManagement>
@@ -64,6 +73,19 @@
                 <artifactId>jjwt-jackson</artifactId>
                 <version>${jjwt.version}</version>
                 <scope>runtime</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework.cloud</groupId>
+                <artifactId>spring-cloud-dependencies</artifactId>
+                <version>${spring-cloud.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework.kafka</groupId>
+                <artifactId>spring-kafka-bom</artifactId>
+                <version>${kafka.version}</version>
+                <type>pom</type>
             </dependency>
         </dependencies>
     </dependencyManagement>

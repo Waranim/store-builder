@@ -2,11 +2,13 @@ package xyz.waranim.authservice;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cloud.openfeign.EnableFeignClients;
 
 @SpringBootApplication(scanBasePackages = {
         "xyz.waranim.authservice",
         "xyz.waranim.common"
 })
+@EnableFeignClients
 public class AuthServiceApplication {
 
     public static void main(String[] args) {

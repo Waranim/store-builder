@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: store-builder-config
+  namespace: store-builder
+data:
+  REDIS_PORT: "6379"
+  POSTGRES_DB: "store_builder"
+  SMTP_HOSTNAME: "mailhog"
+  SMTP_PORT: "1025"
+  SMTP_FROM: "waranim.xyz"
+  SMTP_AUTH: "false"
+  GATEWAY_URL: "http://localhost:8080/auth"
+  AUTH_HOSTNAME: "auth"
+  AUTH_PORT: "8081"
+  SHOP_HOSTNAME: "shop"
+  SHOP_PORT: "8082"
+  CATALOG_HOSTNAME: "catalog"
+  CATALOG_PORT: "8083"
+  ORDER_HOSTNAME: "order"
+  ORDER_PORT: "8084"

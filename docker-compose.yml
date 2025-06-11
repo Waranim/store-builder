@@ -1,0 +1,209 @@
+services:
+  auth:
+    image: waranim.xyz:5000/auth-service:1.6
+    build:
+      context: .
+      dockerfile: auth-service/Dockerfile
+    ports:
+      - "8081:8081"
+    environment:
+      - REDIS_HOSTNAME=redis
+      - REDIS_PORT=6379
+      - POSTGRES_HOSTNAME=db
+      - POSTGRES_PORT=5432
+      - POSTGRES_DB_NAME=store_builder
+      - SMTP_HOSTNAME=mailhog
+      - SMTP_PORT=1025
+      - SMTP_FROM=waranim.xyz
+      - SMTP_AUTH=false
+      - GATEWAY_URL=http://localhost:8080/auth
+      - SECRET_KEY=ZHNheGNpdHlGZGoyNEZEc2o0MzdPSUpOazFqb2Jub3Q=
+      - URL_ORDER_SERVICE=order:8084
+    depends_on:
+      - redis
+      - db
+
+  gateway:
+    image: waranim.xyz:5000/api-gateway:1.6
+    build:
+      context: .
+      dockerfile: api-gateway/Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - AUTH_HOSTNAME=auth
+      - AUTH_PORT=8081
+      - SHOP_HOSTNAME=shop
+      - SHOP_PORT=8082
+      - CATALOG_HOSTNAME=catalog
+      - CATALOG_PORT=8083
+      - ORDER_HOSTNAME=order
+      - ORDER_PORT=8084
+      - MEDIA_HOSTNAME=media
+      - MEDIA_PORT=8085
+      - PAYMENT_HOSTNAME=payment
+      - PAYMENT_PORT=8086
+      - SECRET_KEY=ZHNheGNpdHlGZGoyNEZEc2o0MzdPSUpOazFqb2Jub3Q=
+    depends_on:
+      - auth
+
+  shop:
+    image: waranim.xyz:5000/shop-service:1.6
+    build:
+      context: .
+      dockerfile: shop-service/Dockerfile
+    ports:
+      - "8082:8082"
+    environment:
+      - POSTGRES_HOSTNAME=db
+      - POSTGRES_PORT=5432
+      - POSTGRES_DB_NAME=store_builder
+      - GATEWAY_URL=http://localhost:8080/shops
+    depends_on:
+      - auth
+      - gateway
+
+  catalog:
+    image: waranim.xyz:5000/catalog-service:1.6
+    build:
+      context: .
+      dockerfile: catalog-service/Dockerfile
+    ports:
+      - "8083:8083"
+    environment:
+      - POSTGRES_HOSTNAME=db
+      - POSTGRES_PORT=5432
+      - POSTGRES_DB_NAME=store_builder
+      - GATEWAY_URL=http://localhost:8080/catalogs
+    depends_on:
+      - auth
+      - gateway
+
+  order:
+    image: waranim.xyz:5000/order-service:1.6
+    build:
+      context: .
+      dockerfile: order-service/Dockerfile
+    ports:
+      - "8084:8084"
+    environment:
+      - REDIS_HOSTNAME=redis
+      - REDIS_PORT=6379
+      - POSTGRES_HOSTNAME=db
+      - POSTGRES_PORT=5432
+      - POSTGRES_DB_NAME=store_builder
+      - GATEWAY_URL=http://localhost:8080/orders
+      - URL_PRODUCT_SERVICE=catalog:8083
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+    depends_on:
+      - auth
+      - gateway
+
+  media:
+    image: waranim.xyz:5000/media-service:1.6
+    build:
+      context: .
+      dockerfile: media-service/Dockerfile
+    ports:
+      - "8085:8085"
+    environment:
+      - POSTGRES_HOSTNAME=db
+      - POSTGRES_PORT=5432
+      - POSTGRES_DB_NAME=store_builder
+      - GATEWAY_URL=http://localhost:8080/media
+      - MINIO_URL=http://minio:9000
+      - MINIO_ACCSESS_KEY=minio
+      - MINIO_SECRET_KEY=minio123
+      - MINIO_BUCKET=images
+    depends_on:
+      - auth
+      - gateway
+      - minio
+
+  payment:
+    image: waranim.xyz:5000/payment-service:1.6
+    build:
+      context: .
+      dockerfile: payment-service/Dockerfile
+    ports:
+      - "8086:8086"
+    environment:
+      - POSTGRES_HOSTNAME=db
+      - POSTGRES_PORT=5432
+      - POSTGRES_DB_NAME=store_builder
+      - GATEWAY_URL=http://localhost:8080/payments
+    depends_on:
+      - auth
+      - gateway
+
+  notification:
+    image: waranim.xyz:5000/notification-service:1.6
+    build:
+      context: .
+      dockerfile: notification-service/Dockerfile
+    ports:
+      - "8087:8087"
+    environment:
+      - SMTP_HOSTNAME=mailhog
+      - SMTP_PORT=1025
+      - SMTP_AUTH=false
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - URL_SHOP_SERVICE=shop:8082
+      - URL_AUTH_SERVICE=auth:8081
+    depends_on:
+      - kafka
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
+  db:
+    image: postgres:14-alpine
+    ports:
+      - "5433:5432"
+    environment:
+      - POSTGRES_DB=store_builder
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    volumes:
+      - db-data:/var/lib/postgresql/data
+
+  mailhog:
+    image: mailhog/mailhog:latest
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+    depends_on:
+      - auth
+
+  minio:
+    image: minio/minio:latest
+    command: server /data --console-address ":9001"
+    ports:
+      - "9000:9000"   # S3‑совместимый API
+      - "9001:9001"   # Web‑консоль
+    environment:
+      MINIO_ROOT_USER: minio
+      MINIO_ROOT_PASSWORD: minio123
+    volumes:
+      - ./minio-data:/data
+
+  kafka:
+    image: bitnami/kafka:latest
+    container_name: kafka
+    environment:
+      - KAFKA_CFG_NODE_ID=1
+      - KAFKA_CFG_PROCESS_ROLES=controller,broker
+      - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=1@kafka:9093
+      - KAFKA_CFG_LISTENERS=PLAINTEXT://:9092,CONTROLLER://:9093
+      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9092
+      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT
+      - KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER
+      - KAFKA_CFG_INTER_BROKER_LISTENER_NAME=PLAINTEXT
+      - KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE=true
+    ports:
+      - "9092:9092"
+
+volumes:
+  db-data:

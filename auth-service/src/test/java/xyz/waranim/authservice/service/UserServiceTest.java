@@ -32,10 +32,10 @@ class UserServiceTest {
     private final String invalidOtp = "000000";
 
     @Test
-    void login_WithNewUser_ShouldCreateUserAndGenerateOtp() {
+    void login_Seller_WithNewUser_ShouldCreateUserAndGenerateOtp() {
         when(userRepository.existsByEmail(validEmail)).thenReturn(false);
 
-        userService.login(validEmail);
+        userService.login(validEmail, true);
 
         verify(userRepository).save(argThat(user ->
                 user.getEmail().equals(validEmail) && !user.isEmailVerified()
@@ -44,10 +44,10 @@ class UserServiceTest {
     }
 
     @Test
-    void login_WithExistingUser_ShouldOnlyGenerateOtp() {
+    void login_Seller_WithExistingUser_ShouldOnlyGenerateOtp() {
         when(userRepository.existsByEmail(validEmail)).thenReturn(true);
 
-        userService.login(validEmail);
+        userService.login(validEmail, true);
 
         verify(userRepository, never()).save(any());
         verify(otpService).generateOtp(validEmail);

@@ -15,6 +15,9 @@ spring:
           lob:
             non_contextual_creation: true
           time_zone: UTC
+        default_schema: auth
+        hbm2ddl:
+          create_namespaces: true
 
   datasource:
     url: jdbc:postgresql://${POSTGRES_HOSTNAME:localhost}:${POSTGRES_PORT:5432}/${POSTGRES_DB_NAME:store_builder}
@@ -35,7 +38,7 @@ spring:
             enable: ${SMTP_STARTTLS:true}
 
 jwt:
-  secret: ${SECRET_KEY:jfitbksigtA214dfesdfr86f2OPwb271}  # Минимум 256 бит (32 символа)
+  secret: ${SECRET_KEY:ZHNheGNpdHlGZGoyNEZEc2o0MzdPSUpOazFqb2Jub3Q=}  # Минимум 256 бит (32 символа)
   otp:
     expiration: 300 # 5 минут
   access:
@@ -47,12 +50,26 @@ server:
   port: 8081
 
 springdoc:
+  server-url: ${GATEWAY_URL:http://localhost:8080/auth}
   swagger-ui:
     path: /swagger-ui.html
     url: /v3/api-docs
+    urls:
+      - name: shop
+        url: /shops/v3/api-docs
+      - name: catalog
+        url: /catalogs/v3/api-docs
+      - name: orders
+        url: /orders/v3/api-docs
+      - name: media
+        url: /media/v3/api-docs
     operations-sorter: method
     tags-sorter: alpha
     default-model-expand-depth: 3
     persistAuthorization: true
   api-docs:
     path: /v3/api-docs
+
+services:
+  order:
+    url: ${URL_ORDER_SERVICE:http://localhost:8084}

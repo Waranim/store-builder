@@ -3,24 +3,17 @@ package xyz.waranim.common.user;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import xyz.waranim.common.BaseEntity;
 
-import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.Set;
-
+@EqualsAndHashCode(callSuper = true)
 @Entity
-@Table(name = "users")
+@Table(name = "users", schema = "auth")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserEntity {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    @Version
-    private Integer version;
+public class UserEntity extends BaseEntity {
 
     @Column(unique = true, nullable = false)
     private String email;
@@ -29,23 +22,7 @@ public class UserEntity {
 
     private boolean isEmailVerified = false;
 
-    @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"))
-    @Column(name = "role")
-    private Set<String> roles = new HashSet<>();
-
-    private LocalDateTime createdAt;
-
-    private LocalDateTime updatedAt;
-
-    @PrePersist
-    protected void onCreate() {
-        this.createdAt = LocalDateTime.now();
-        this.updatedAt = LocalDateTime.now();
-    }
-
-    @PreUpdate
-    protected void onUpdate() {
-        this.updatedAt = LocalDateTime.now();
-    }
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private UserRole role;
 }

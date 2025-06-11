@@ -11,6 +11,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import xyz.waranim.authservice.repository.UserRepository;
 import xyz.waranim.common.user.UserEntity;
+import xyz.waranim.common.user.UserRole;
 
 import java.util.Optional;
 import java.util.Set;
@@ -33,7 +34,7 @@ class CustomUserDetailsServiceTest {
 
     @Test
     void loadUserByUsername_ShouldReturnUserDetails_WhenUserExistsAndVerified() {
-        UserEntity user = createUser(email, true, true, Set.of("USER", "ADMIN"));
+        UserEntity user = createUser(email, true, true, UserRole.ADMIN);
         when(userRepository.findByEmail(email)).thenReturn(Optional.of(user));
 
         UserDetails userDetails = userDetailsService.loadUserByUsername(email);
@@ -41,7 +42,6 @@ class CustomUserDetailsServiceTest {
         assertNotNull(userDetails);
         assertEquals(email, userDetails.getUsername());
         assertTrue(userDetails.isEnabled());
-        assertTrue(userDetails.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_USER")));
         assertTrue(userDetails.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_ADMIN")));
     }
 
@@ -58,7 +58,7 @@ class CustomUserDetailsServiceTest {
 
     @Test
     void loadUserByUsername_ShouldThrowException_WhenEmailNotVerified() {
-        UserEntity user = createUser(unverifiedEmail, false, true, Set.of("USER"));
+        UserEntity user = createUser(unverifiedEmail, false, true, UserRole.SELLER);
         when(userRepository.findByEmail(unverifiedEmail)).thenReturn(Optional.of(user));
 
         DisabledException exception = assertThrows(
@@ -70,7 +70,7 @@ class CustomUserDetailsServiceTest {
 
     @Test
     void loadUserByUsername_ShouldThrowException_WhenUserDisabled() {
-        UserEntity user = createUser(blockedEmail, true, false, Set.of("USER"));
+        UserEntity user = createUser(blockedEmail, true, false, UserRole.SELLER);
         when(userRepository.findByEmail(blockedEmail)).thenReturn(Optional.of(user));
 
         DisabledException exception = assertThrows(
@@ -82,7 +82,7 @@ class CustomUserDetailsServiceTest {
 
     @Test
     void loadUserByUsername_ShouldReturnEmptyAuthorities_WhenNoRoles() {
-        UserEntity user = createUser(email, true, true, Set.of());
+        UserEntity user = createUser(email, true, true, null);
         when(userRepository.findByEmail(email)).thenReturn(Optional.of(user));
 
         UserDetails userDetails = userDetailsService.loadUserByUsername(email);
@@ -90,12 +90,12 @@ class CustomUserDetailsServiceTest {
         assertTrue(userDetails.getAuthorities().isEmpty());
     }
 
-    private UserEntity createUser(String email, boolean verified, boolean enabled, Set<String> roles) {
+    private UserEntity createUser(String email, boolean verified, boolean enabled, UserRole role) {
         UserEntity user = new UserEntity();
         user.setEmail(email);
         user.setEmailVerified(verified);
         user.setEnabled(enabled);
-        user.setRoles(roles);
+        user.setRole(role);
         return user;
     }
 }
